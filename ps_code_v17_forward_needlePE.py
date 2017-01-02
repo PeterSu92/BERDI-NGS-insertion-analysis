@@ -400,31 +400,43 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
             #initialize cutoff scores
             lo_cutoff = 0
             hi_cutoff = 1500
-            if len(str(aln_data[0][1].seq)) < 50 :
+            if len(str(aln_data[0][1].seq).lstrip('-').strip('-')) < 50 :
                 lo_cutoff = bin_scores[0][0]
                 hi_cutoff = bin_scores[0][1]
-            elif len(str(aln_data[0][1].seq)) >= 50 and len(str(aln_data[0][1].seq)) < 100:
+            elif len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) >= 50 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 100:
                 lo_cutoff = bin_scores[1][0]
                 hi_cutoff = bin_scores[1][1]
-            elif len(str(aln_data[0][1].seq)) >= 100 and len(str(aln_data[0][1].seq)) < 150:
+            elif len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) >= 100 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 150:
                 lo_cutoff = bin_scores[2][0]
                 hi_cutoff = bin_scores[2][1]
-            elif len(str(aln_data[0][1].seq)) >= 150 and len(str(aln_data[0][1].seq)) < 200:
+            elif len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) >= 150 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 200:
                 lo_cutoff = bin_scores[3][0]
                 hi_cutoff = bin_scores[3][1]
-            elif len(str(aln_data[0][1].seq)) >= 200 and len(str(aln_data[0][1].seq)) < 250:
+            elif len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) >= 200 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 250:
                 lo_cutoff = bin_scores[4][0]
                 hi_cutoff = bin_scores[4][1]
-            elif len(str(aln_data[0][1].seq)) >= 250 and len(str(aln_data[0][1].seq)) < 300:
+            elif len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) >= 250 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 300:
                 lo_cutoff = bin_scores[5][0]
                 hi_cutoff = bin_scores[5][1]
 
-            if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] < hi_cutoff):
+            for alignment in aln_data:
+                if (alignment.annotations['score'] >= lo_cutoff) and (alignment.annotations['score'] < hi_cutoff):
+                        #Template should have no gaps and should contain the whole
+                        # non-template sequence
+                #if not str(alignment[0].seq).count('-') > 0:
+                            joined_align = [r for r,t in zip(alignment[1],alignment[0]) if t != '-']
+                            pe_read = SeqRecord(''.join(joined_align))
 
                 #if str(pe_seqs[p_index].reverse_complement().seq).find(str(copied.seq)):
                     # #Now this filters on the paired end sequence match
                 aln_ct += 1
-                matched_seq_list.append(copied)
+                #bar = re.search('[AGCT]+',str(aln_data[0][1].seq)[-1:0:-1])
+                if f_res[2] not in str(s.seq): #if the scar isn't found on the forward read 
+                    bar = re.search('[AGCT]+',str(pe_read.seq)[-1:0:-1]) #search backwards through reverse compliment of PE read, find first base that aligned.
+                    match_coord = len(pe_read.seq)-bar.span()[0] #since search is backwards, subtract index of first base from overall length. 
+                    pe_append = [match_coord:list(pe_res[2].finditer(str(pe_read.seq)))[-1].start()] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
+                    s.seq = s.seq+pe_append
+                    matched_seq_list.append(s)
             print (si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",)
             si = si + 1
     print ("")
