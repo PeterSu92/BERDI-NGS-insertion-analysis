@@ -182,7 +182,7 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         # Now that only sequences containing BOTH the CS and the TR have been filtered for,
         # the paired-end matching can occur
         
-        seqs = filter_pe_mismatch(f_seqs3,pe_seqs3,gen_copied_seq_function(f_res))
+        seqs = filter_pe_mismatch(f_seqs3,pe_seqs3,f_res[2])
         print(str(len(seqs))+' forward reads have a paired-end match')
         
         seqs = quality_filter(seqs,q_cutoff=20)
@@ -431,7 +431,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                     # #Now this filters on the paired end sequence match
                 aln_ct += 1
                 #bar = re.search('[AGCT]+',str(aln_data[0][1].seq)[-1:0:-1])
-                if f_res[2] not in str(s.seq): #if the scar isn't found on the forward read 
+                if copied_func not in str(s.seq): #if the scar isn't found on the forward read 
                     bar = re.search('[AGCT]+',str(pe_read.seq)[-1:0:-1]) #search backwards through reverse compliment of PE read, find first base that aligned.
                     match_coord = len(pe_read.seq)-bar.span()[0] #since search is backwards, subtract index of first base from overall length. 
                     pe_append = pe_read[match_coord:list(pe_res[2].finditer(str(pe_read.seq)))[-1].start()] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
