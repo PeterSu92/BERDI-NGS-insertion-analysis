@@ -356,7 +356,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                 co_ct += 1 
                 #copied = copied_func(s) #Get part of the sequence that was actually copied - not using as of now
                 # print('copied is type ',type(copied))
-                temp_f_seq = copied
+                #temp_f_seq = copied
                 p_index = pe_coordL.index(get_coords(s))        
                 with open('temp_seq_PE.fa','w') as sh: #create temporary seq file, hopefully re-written each time
                 #temp_f_seq = copied
@@ -366,7 +366,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                     #temp_seq = SeqRecord(Seq(template),id='template',name = 'template')
                     SeqIO.write(pe_seqs[p_index].reverse_complement(),PE_seq_file,'fasta')
 
-            needle_cline = NeedleCommandline(asequence='temp_temp_PE.fa', bsequence='temp_seq_PE.fa', gapopen=10,
+            needle_cline = NeedleCommandline(asequence='temp_seq_PE.fa', bsequence='temp_temp_PE.fa', gapopen=10,
                                              gapextend=0.5, outfile='PE.needle') #hopefully only one needle file gets made
             needle_cline()
             aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
@@ -400,7 +400,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                             joined_align = [r for r,t in zip(alignment[1],alignment[0]) if t != '-']
                             pe_read = SeqRecord(''.join(joined_align))
                 aln_ct += 1
-                if f_res[2] not in str(s.seq): #if the scar isn't found on the forward read 
+                if copied_func not in str(s.seq): #if the scar isn't found on the forward read 
                     bar = re.search('[AGCT]+',str(pe_read.seq)[0:-1:1]) #search forwards through reverse complement of PE read, find first base that aligned.
                     match_coord = bar.span()[0] #since search is backwards, subtract index of first base from overall length. 
                     pe_append = pe_read[f_res[2].search(str(s.seq)).end():match_coord] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
