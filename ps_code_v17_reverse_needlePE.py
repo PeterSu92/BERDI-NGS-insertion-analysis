@@ -182,7 +182,7 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         # Now that only sequences containing BOTH the CS and the TR have been filtered for,
         # the paired-end matching can occur
         
-        seqs = filter_pe_mismatch(f_seqs3,pe_seqs3,f_res[2])
+        seqs = filter_pe_mismatch(f_seqs3,pe_seqs3,f_res[2]) #need to fix later, still uses f_res[2] as copied_func
         print(str(len(seqs))+' forward reads have a paired-end match')
         
         seqs = quality_filter(seqs,q_cutoff=20)
@@ -380,7 +380,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                 #isn't zero, so if the paired-end coordinates were found, the block below
                 # will be run
                 co_ct += 1 
-                copied = copied_func(s) #Get part of the sequence that was actually copied
+                #copied = copied_func(s) #Get part of the sequence that was actually copied
                 # print('copied is type ',type(copied))
                 temp_f_seq = copied
                 p_index = pe_coordL.index(get_coords(s))        
@@ -425,7 +425,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                         # non-template sequence
                 #if not str(alignment[0].seq).count('-') > 0:
                             joined_align = [r for r,t in zip(alignment[1],alignment[0]) if t != '-']
-                            pe_read = SeqRecord(''.join(joined_align))
+                            pe_read = SeqRecord(''.join(joined_align)) #the paired-end has already been made reverse complement for the alignment
 
                 #if str(pe_seqs[p_index].reverse_complement().seq).find(str(copied.seq)):
                     # #Now this filters on the paired end sequence match
@@ -434,7 +434,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                 if f_res[2] not in str(s.seq): #if the scar isn't found on the forward read 
                     bar = re.search('[AGCT]+',str(pe_read.seq)[-1:0:-1]) #search backwards through reverse compliment of PE read, find first base that aligned.
                     match_coord = len(pe_read.seq)-bar.span()[0] #since search is backwards, subtract index of first base from overall length. 
-                    pe_append = pe_read[match_coord:list(pe_res[2].finditer(str(pe_read.seq)))[-1].start()] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
+                    pe_append = pe_read[match_coord:list(f_res[2].finditer(str(pe_read.seq)))[-1].start()] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                     s.seq = s.seq+pe_append
                     matched_seq_list.append(s)
             print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
@@ -480,18 +480,22 @@ def insertion_chunks(final_seqs):
     discarded_reads = 0
     chunk_size = 3
     reads_at_end = 0
+    large_chunk_reads = 0
+    upstream_dashes = 0
+    perfect_matches = 0
+    max_chunks_exceeded = 0
+    other_scenario = 0
     for i in range(len(final_seqs)):
        end_pos = -1
        insert_site = 0
        num_chunks = 0
        seq_chunks = []
        max_chunks = 2
-       
        total_len = 0
-       print('Current sequence: ' +str(i+1))
+       #print('Current sequence: ' +str(i+1))
        if str(final_seqs[i].seq)[0] == '-':
           discarded_reads += 1
-          print(str(i)+' had upstream dashes')
+          upstream_dashes +=1
           continue
        while total_len < len(final_seqs[i].seq):
           bar=re.search('[AGCT]+',str(final_seqs[i].seq)[end_pos:0:-1])
@@ -503,13 +507,13 @@ def insertion_chunks(final_seqs):
                 reads_at_end += 1
                 #insert_site = end_pos
                 insertions.append(end_pos)
-                print(str(i)+' read at end')
+                
                 break
           elif abs((bar.span()[1]-bar.span()[0])+1) == (len(final_seqs[i].seq.strip('-'))-total_len): ##perfect match
                 insert_site = len(final_seqs[i].seq)-bar.span()[0]
                 insertions.append(insert_site) #length of the entire alignment minus the length spanned before the first base
                 chunk_dict.update({insert_site:seq_chunks})
-                print(str(i)+' is a perfect match')
+                perfect_matches +=1
                 break
           elif abs((bar.span()[1]-bar.span()[0])) <= chunk_size: #if a chunk is small enough, set index correspondingly but keep searching through the alignment
                 
@@ -522,16 +526,18 @@ def insertion_chunks(final_seqs):
                 span_length = abs(bar.span()[1]-bar.span()[0])
                 seq_chunks.append(span_length)
                 total_len += bar.span()[1]
-                print('total length: '+str(total_len))
+                #print('total length: '+str(total_len))
                 continue
               #elif abs((bar.span()[1]-bar.span()[0])+1) == (len(final_seqs[i].seq.strip('-'))-total_len):
           elif (abs((bar.span()[1]-bar.span()[0])) > chunk_size) and (abs((bar.span()[1]-bar.span()[0])+1) != (len(final_seqs[i].seq.strip('-'))-total_len)): #this gets rid of sequences with big chunks
                 discarded_reads += 1
-                print(str(i)+' had too large of a chunk')
+                large_chunk_reads +=1
+                
                 break
           elif num_chunks > max_chunks: #too many chunks leads to alignment being discarded
                 discarded_reads +=1
-                print(str(i)+' had too many chunks')
+                max_chunks_exceeded +=1
+                
                 break
                    # if num_chunks == 0:
                    #    end_pos = len(template)-1-bar.span()[1]
@@ -557,20 +563,25 @@ def insertion_chunks(final_seqs):
         #               break           
           else:
                 #insert_site += len(template)-bar.span()[0]
-                end_pos = bar.span()[0]
-                span_length = abs(bar.span()[1]-bar.span()[0])
-                seq_chunks.append(span_length)
-                #insert_site = len(final_seqs[i].seq)-bar.span()[0]
-                insert_site += len(final_seqs[i].seq)-bar.span()[0]
-                insertions.append(insert_site)
-                chunk_dict.update({insert_site:seq_chunks})
-                print('sequence '+str(i+1) +' had an insertion weirdly')
+                # end_pos = bar.span()[0]
+                # span_length = abs(bar.span()[1]-bar.span()[0])
+                # seq_chunks.append(span_length)
+                # #insert_site = len(final_seqs[i].seq)-bar.span()[0]
+                # insert_site += len(final_seqs[i].seq)-bar.span()[0]
+                # insertions.append(insert_site)
+                # chunk_dict.update({insert_site:seq_chunks})
+                other_scenario +=1
+
                 #num_chunks +=1
                 break
     
     print (str(reads_at_end)+ ' reads reached the end without a suitable insertion')    
     print (str(discarded_reads)+' reads were discarded :(')
-    
+    print(str(large_chunk_reads)+' reads had too large of a chunk')
+    print(str(max_chunks_exceeded)+' reads had too many chunks')
+    print(str(upstream_dashes)+' reads had upstream dashes')
+    print(str(perfect_matches)+' reads are perfect matches')
+    print(str(other_scenario) +' reads did not satisfy any of the criteria')
         
     return chunk_dict, insertions
     
