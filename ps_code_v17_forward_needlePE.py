@@ -15,7 +15,7 @@ import time
 import uuid
 import random
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import pandas as pd
 import csv
 from Bio import AlignIO, SeqIO
@@ -431,13 +431,13 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                     # #Now this filters on the paired end sequence match
                 aln_ct += 1
                 #bar = re.search('[AGCT]+',str(aln_data[0][1].seq)[-1:0:-1])
-                if copied_func not in str(s.seq): #if the scar isn't found on the forward read 
+                if f_res[2] not in str(s.seq): #if the scar isn't found on the forward read 
                     bar = re.search('[AGCT]+',str(pe_read.seq)[-1:0:-1]) #search backwards through reverse compliment of PE read, find first base that aligned.
                     match_coord = len(pe_read.seq)-bar.span()[0] #since search is backwards, subtract index of first base from overall length. 
                     pe_append = pe_read[match_coord:list(pe_res[2].finditer(str(pe_read.seq)))[-1].start()] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                     s.seq = s.seq+pe_append
                     matched_seq_list.append(s)
-            print (si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",)
+            print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
             si = si + 1
     print ("")
     
@@ -503,10 +503,10 @@ def insertion_chunks(final_seqs):
                     reads_at_end += 1
                     break
 
-                if end_pos >= 300: #this prevents a nonphysical insertion from happening
+              if end_pos >= 300: #this prevents a nonphysical insertion from happening
                     end_pos = end_pos-4
                     insertions.append(insert_site)
-                break
+                    break
               elif abs((bar.span()[1]-bar.span()[0])+1) == (len(final_seqs[i].seq.lstrip('-').strip('-'))): #perfect match occurs
                      insert_site = bar.span()[0] #forward search stops at the first base of the DNA chunk
                      insertions.append(insert_site)
