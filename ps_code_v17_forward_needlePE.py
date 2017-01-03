@@ -434,7 +434,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                 if f_res[2] not in str(s.seq): #if the scar isn't found on the forward read 
                     bar = re.search('[AGCT]+',str(pe_read.seq)[-1:0:-1]) #search backwards through reverse compliment of PE read, find first base that aligned.
                     match_coord = len(pe_read.seq)-bar.span()[0] #since search is backwards, subtract index of first base from overall length. 
-                    pe_append = [match_coord:list(pe_res[2].finditer(str(pe_read.seq)))[-1].start()] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
+                    pe_append = pe_read[match_coord:list(pe_res[2].finditer(str(pe_read.seq)))[-1].start()] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                     s.seq = s.seq+pe_append
                     matched_seq_list.append(s)
             print (si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",)
