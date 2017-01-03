@@ -78,12 +78,7 @@ def filter_seqs(seqs,q_re):
     outputs:
             list of Seq objects that have sequence in them.
     """
-            #text_logger = logging.getLogger(_name_+'.text_logger)
-            
-           # text_logger.info('Started regex filter: %s',q_re.pattern)
-    #lamye = [s.seq for s in seqs] #just checking/troubleshooting
-    #f_seqs = list(seqs)
-    #out_l = [s for s in seqs if q_re.search(str(s.seq))]
+
     out_l = [s for s in seqs if q_re.search(str(s.seq))]        
             #so here we compile a list of sequences from the fastq file, stripping away
             #the other data            
@@ -108,12 +103,6 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
             r_filt_seq - list of sequences to filter for on the paired-end side
         """
         
-        # setup loggers - not sure if entirely necessary
-        #text_logger = logging.getLogger(__name__+'.text_logger')
-        #csv_logger = logging.getLogger(__name__+'.csv_logger')
-        
-        #text_logger.info('Starting filtering routine for %s',f_name)
-        
         # Compile regexes
         f_res = compile_res(f_filt_seqs)
         pe_res = compile_res(r_filt_seqs)
@@ -126,9 +115,6 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         pe_seqs1 = list(pe_seqs)
         print(str(len(f_seqs1))+' forward reads and '+str(len(pe_seqs1))+' paired end reads initially')  
         #Filter for quality
-    
-        
-      
         # These sequences with "2" at the end will be filtered for the sequences
         # corresponding to the MBP primer, ZFP primer, and the transposon scar
         f_seqs2 = []
@@ -189,7 +175,6 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         print(str(len(seqs))+' forward reads survived the Phred score quality filter')
         # Note this returns only the forward sequences
         # Now the final step of aligning and filtering by alignment scores happens
-        #newSeqs = alignment_filter(seqs,template_file, gapopen = 10, gapextend = 0.5, lo_cutoff = 300)
         #run the alignment to the template file, varying cutoff by length
         #initialize bins
         bin1 = [] #bin1 is all sequences under 50 bases
@@ -200,9 +185,8 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         bin6 = [] #bin6 is reads between 250 and 300 bases
         # Create a list of all of the bins for iterative purposes
         big_bin = [bin1,bin2,bin3,bin4,bin5,bin6]
-        # Cutoff scores for each
+        # Cutoff scores for each bin
         bin_scores = [[42,251],[205,501],[446,751],[687,1001],[928,1251],[1100,1500]]
-        #lower_bin_scores = [[30,251],[60,501],[250,751],[500,1001],[750,1251],[1000,1500]]
         # Put sequences into bins based on their length        
         for s in seqs:
                 
@@ -219,9 +203,7 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
                 elif ((len(str(s.seq)) >= 250) and (len(str(s.seq)) < 300)):
                     bin6.append(s)
         newSeqs = []
-        # Run alignment with score cutoffs based on read length
-        # for i in range(len(big_bin)):
-        #     print('Bin'+str(i+1)+'has '+str(len(big_bin[i]))+' reads')        
+        # Run alignment with score cutoffs based on read length    
         for i in range(len(big_bin)):
                 if len(big_bin[i]) == 0:
                     print ('Bin'+str(i+1)+' has no reads')
@@ -236,7 +218,6 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         final_seqs = []
         #this next command just takes each item from each of the sublists in newSeqs and dumps them into one new list
         final_seqs = [item for sublist in newSeqs for item in sublist]
-        
         
         return final_seqs
         
@@ -271,7 +252,6 @@ def cull_alignments(aln_data, lo_cutoff, hi_cutoff):
             if (alignment.annotations['score'] >= lo_cutoff) and (alignment.annotations['score'] < hi_cutoff):
                         #Template should have no gaps and should contain the whole
                         # non-template sequence
-                #if not str(alignment[0].seq).count('-') > 0:
                             joined_align = [r for r,t in zip(alignment[1],alignment[0]) if t != '-']
                             new_read = SeqRecord(''.join(joined_align))
                             new_seqs.append(new_read)
@@ -307,18 +287,11 @@ def alignment_filter(seqs,template, lo_cutoff,hi_cutoff, bin_num, gapopen = 10, 
     needle_cline()
             
     aln_data = AlignIO.parse(open(ofilen),"emboss")
-    # for some reason this generator stuff is not working for me
+    # for some reason this generator stuff is not working for me so I just set it as a list
     aln_data_list = list(aln_data)
     new_seqs = cull_alignments(aln_data_list, lo_cutoff, hi_cutoff)
             
-    #if cleanup:
-    #   logging.info('Cleaning up temp files')
-    #   os.remove(template_fname)
-    #   os.remove(seqs_fname)
-    #   os.remove(ofilen)
-               
     return new_seqs
-        
         
         
 def stripForwardBarcodes(f_seqs, l_barcode=5):
@@ -348,8 +321,6 @@ def gen_copied_seq_function(f_res):
             return lambda s: get_copied_seq(s, f_res)
             # lambda s is just like f(s)
             
- ### This needs to change to include paired ends i.e.
-###  def filter_pe_mistmatch(f_seqs,pe_seqs,copied_func)
 def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needleman-Wunsch algorithm for paired-end filtering.
     """
     
@@ -380,7 +351,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                 #isn't zero, so if the paired-end coordinates were found, the block below
                 # will be run
                 co_ct += 1 
-                #copied = copied_func(s) #Get part of the sequence that was actually copied
+                #copied = copied_func(s) #Get part of the sequence that was actually copied - not using as of now
                 # print('copied is type ',type(copied))
                 temp_f_seq = copied
                 p_index = pe_coordL.index(get_coords(s))        
@@ -561,15 +532,7 @@ def insertion_chunks(final_seqs):
         #               span_length = bar.span()[1]-bar.span()[0]
         #               seq_chunks.append(span_length)
         #               break           
-          else:
-                #insert_site += len(template)-bar.span()[0]
-                # end_pos = bar.span()[0]
-                # span_length = abs(bar.span()[1]-bar.span()[0])
-                # seq_chunks.append(span_length)
-                # #insert_site = len(final_seqs[i].seq)-bar.span()[0]
-                # insert_site += len(final_seqs[i].seq)-bar.span()[0]
-                # insertions.append(insert_site)
-                # chunk_dict.update({insert_site:seq_chunks})
+          else: #This should not happen now, but if it does, will document it
                 other_scenario +=1
 
                 #num_chunks +=1
@@ -615,12 +578,6 @@ def insertion_site_freq(final_seqs,template,reaction_number):
     return insert_dict,coverage
 
 
-
-
-
-
-    
-    
 def figplot_scatter(ax,template,max_frequency):
     '''
     Set of simple commands to make the scatterplot figure look nice
@@ -737,7 +694,6 @@ def main(argv):
     # fig1.savefig('filename.pdf')
     #
     ## Write this to a .csv file, need to write into columns instead of possible
-    #os.getcwd()
     outp_file_loc = '../CSV_Results/'
     with open(outp_file_loc+outp_name+'_results.csv','w') as file:
         # should result in rxn1_828_829_F_results.csv as output
@@ -755,59 +711,3 @@ def main(argv):
 if __name__ == "__main__":
    main(sys.argv[1:])
 ##
-#template_file = 'temptemplate.fa'
-#template = str(list(SeqIO.parse(template_file,'fasta'))[0].seq)
-#print('Template is '+str(len(template)) +'bp long')
-##f_name = '~\\Box Sync\\PERMUTE 2.0 Biosensor creation\\Deep sequencing\\Data\\MiSeq185_Peter Su_15337-33617597\\Peter1_1A-41111250\\Peter1-1A_S113_L001_R1_001.fastq.gz'
-##pe_name = '~\\Box Sync\\PERMUTE 2.0 Biosensor creation\\Deep sequencing\\Data\\MiSeq185_Peter Su_15337-33617597\\Peter1_1A-41111250\\Peter1-1A_S113_L001_R2_001.fastq.gz'
-#
-##lepath = os.path.expanduser('~\Box/ Sync\PERMUTE/ 2.0/ Biosensor/ creation\\Deep/ sequencing\\filter/ sequences\\')
-##cur_dir = os.getcwd()
-####Gather all csv files in the filter_sequences folder
-#lepath = 'C:\\Users\\Peter Su\\Box Sync\\PERMUTE 2.0 Biosensor creation\\Deep sequencing\\filter sequences'
-#f_filt_seqs_master = glob.glob(lepath+'/*.csv')#Gather files for forward and reverse fitler sequences
-#forward_files = []
-#reverse_files = []
-#for files in f_filt_seqs_master:
-#    if 'F' in files:
-#        forward_files.append(files)
-#    elif 'R' in files:
-#        reverse_files.append(files)
-##
-#f_filt_seqs_file1 = forward_files[0]
-#
-#f_df = pd.read_csv(f_filt_seqs_file1)
-#f_filt_seqs = f_df['sequence'].tolist()
-#r_filt_seqs = []
-##Generate reverse compliment for r_filt_seqs
-#r_filt_seqs = [str(Seq(seq).reverse_complement()) for seq in f_filt_seqs]
-####
-#####
-#####
-#####
-#final_sequences = filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs)
-#print(str(len(final_sequences))+' forward reads survived the final filtering')
-#insertions1 = insertion_site_freq(final_sequences,template)
-#insert_dict1 = insertions1[0] #avoiding using similar names in the workspace
-#coverage = insertions1[1]
-#print(str(len(coverage)+' total insertions', str(coverage)+"% coverage")
-#######
-#######
-#fig1 = plt.figure(figsize = (30,20))
-#ax = fig1.add_subplot(1,1,1)
-#ax.scatter(list(insert_dict1.keys()),list(insert_dict1.values()))
-#max_frequency = max(list(insert_dict1.values()))
-#figplot_scatter(ax,template,max_frequency)
-# Append filename below as desired. 
-#fig1.savefig('Insertion frequency PCR2 replicate 1 round 2.pdf')
-###### This code below is commented out because of the file name. Change as desired
-###### fig1.savefig('filename.pdf')
-#######
-######## Write this to a .csv file, need to write into columns instead of possible
-#with open('insert_site PCR1 round 2.csv','w') as file:
-#    file.write(str(insert_dict1.keys()))
-#    file.write('\n')
-#    file.write(str(insert_dict1.values()))
-#    file.write('\n')
-#    file.write('Coverage ='+str(coverage)+'%')
-#    file.close()
