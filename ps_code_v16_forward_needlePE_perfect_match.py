@@ -350,7 +350,7 @@ def gen_copied_seq_function(f_res):
             
  ### This needs to change to include paired ends i.e.
 ###  def filter_pe_mistmatch(f_seqs,pe_seqs,copied_func)
-def filter_pe_mismatch(f_seqs,pe_seqs,copied_func):
+def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needleman-Wunsch algorithm for paired-end filtering.
     """
     
     Inputs:
@@ -453,10 +453,11 @@ def insertion_chunks(final_seqs):
         for each particular read. Will have redundant entries in most cases, as
         our method often results in multiple insertions at any given site.
     '''
-chunk_dict = {}
-
-    #check_list = []
-insertions = []
+    chunk_dict = {}
+    insertions = []
+    chunk_size = 3
+    max_chunks = 2
+    reads_at_end = 0
 # if reaction_number in reverse_search:
 #     end_pos_default = -1
 #     final_pos = 0
@@ -465,101 +466,101 @@ insertions = []
 #     final_pos = -1
 # else:
 #     print('Error your numbering is terrible')
-discarded_reads = 0
-chunk_size = 3
-reads_at_end = 0
-for i in range(len(final_seqs)):
-   end_pos = -1
-   insert_site = 0
-   num_chunks = 0
-   seq_chunks = []
-   max_chunks = 2
-   
-   total_len = 0
-   print('Current sequence: ' +str(i+1))
-   if str(final_seqs[i].seq)[0] == '-':
-      discarded_reads += 1
-      print(str(i)+' had upstream dashes')
-      continue
-   while total_len < len(final_seqs[i].seq):
-      bar=re.search('[AGCT]+',str(final_seqs[i].seq)[end_pos:0:-1])
-      if str(type(bar)) == "<class 'NoneType'>":
-       #If this happens, we'll know the last base of the previous
-       # chunk was the insertion site, so we set it as such here.                
-       #if end_pos != 0: 
-       #    insert_site = end_pos
-            reads_at_end += 1
-            #insert_site = end_pos
-            insertions.append(end_pos)
-            print(str(i)+' read at end')
-            break
-      elif abs((bar.span()[1]-bar.span()[0])+1) == (len(final_seqs[i].seq.strip('-'))-total_len): ##perfect match
-            insert_site = len(final_seqs[i].seq)-bar.span()[0]
-            insertions.append(insert_site) #length of the entire alignment minus the length spanned before the first base
-            chunk_dict.update({insert_site:seq_chunks})
-            print(str(i)+' is a perfect match')
-            break
-      elif abs((bar.span()[1]-bar.span()[0])) <= chunk_size: #if a chunk is small enough, set index correspondingly but keep searching through the alignment
+    discarded_reads = 0
+
+    for i in range(len(final_seqs)):
+           end_pos = 0 #forward search starts at the beginning
+           #insert_site = 0
+           num_chunks = 0
+           seq_chunks = []
+           insert_site = 0
+           
+           total_len = 0
+           print('Current sequence: ' +str(i+1)) #keep this only for test sequences
+           if str(final_seqs[i].seq)[-1] == '-':
+              discarded_reads += 1
+              print('Sequence '+str(i+1)+ ' had dashes at the 3prime end')
+              continue
+           while total_len < len(final_seqs[i].seq):
+              bar=re.search('[AGCT]+',str(final_seqs[i].seq)[end_pos:-1:1]) #forward search: from start to finish
+              if str(type(bar)) == "<type 'NoneType'>":
+                   #If this happens, we'll know the last base of the previous
+                   # chunk was the insertion site, so we set it as such here.                
+                #print('Sequence '+str(i+1)+'end reached')
+                    #insert_site = end_pos
+                    reads_at_end += 1
+                    break
+
+                if end_pos >= 300: #this prevents a nonphysical insertion from happening
+                    end_pos = end_pos-4
+                    insertions.append(insert_site)
+                break
+              elif abs((bar.span()[1]-bar.span()[0])+1) == (len(final_seqs[i].seq.lstrip('-').strip('-'))): #perfect match occurs
+                     insert_site = bar.span()[0] #forward search stops at the first base of the DNA chunk
+                     insertions.append(insert_site)
+                     chunk_dict.update({insert_site:seq_chunks})
+                     seq_chunks.append(bar.span()[1]-bar.span()[0])
+                     print('Sequence '+str(i+1)+' had a perfect match')
+                     break
+              elif abs((bar.span()[1]-bar.span()[0])) <= chunk_size: #if a chunk is small enough, set index correspondingly but keep searching through the alignment
+                     num_chunks += 1
+                     end_pos += bar.span()[1]
+                     insert_site += bar.span()[1]
+                     span_length = abs(bar.span()[1]-bar.span()[0])
+                     seq_chunks.append(span_length)
+                     total_len += bar.span()[1]
+                     continue
+              elif (abs((bar.span()[1]-bar.span()[0])) > chunk_size) and (abs((bar.span()[1]-bar.span()[0])) != len(final_seqs[i].seq.lstrip('-'))-total_len): #if chunk too large, get rid of the alignment
+                     discarded_reads += 1
+                     print('Sequence '+str(i+1)+' had too large of a chunk')
+                     break
+              elif len(final_seqs[i].seq.strip('-')) != len(final_seqs[i].seq.lstrip('-')): #gets rid of alignments with gaps at the 3' end
+                     discarded_reads +=1
+                     break
+              elif num_chunks > max_chunks: #too many chunks leads to an alignment being thrown out. 
+                     discarded_reads += 1
+                     break
+                    # elif abs((bar.span()[1]-bar.span()[0])) <=8: #if the contiguous chunk of DNA is too small, move on but save the indexing and the length searched so that the
+                        # insert site isn't miscaculated, as the next iteration of the search starts the regex indexing back at 0
+                        #print('an insertion had a small chunk;'+ ' end pos: '+str(bar.span()[1]))
+                        # end_pos += bar.span()[1]
+                        # #we add the entire length of the spanned region, through the chunk of DNA spanned, to the insert site
+                        # insert_site += (bar.span()[1])
+                        # span_length = abs(bar.span()[1]-bar.span()[0])
+                        # seq_chunks.append(span_length)
+                        # total_len += bar.span()[1]
+                        # num_chunks +=1
+                        # continue
+                    # elif ((bar.span()[1]-bar.span()[0]) >=8) and (bar.span()[0] == 0): #this shouldn't ever really happen for most PCRs in this category. 
+                    #     insert_site += bar.span()[0]
+                    #     print('Insertion at start of template') #printing this will tell us if this happens
+                    #     num_chunks += 1
+                    #     insertions[i] = insert_site
+                    #     span_length = abs(bar.span()[1]-bar.span()[0])
+                    #     seq_chunks.append(span_length)
+                    #     total_len += span_length
+                    #     break
+         
+              else: #This should not happen now, but if it does, it sets the insert site as the FIRST base of the contiguous region, which is why bar.span()[0] is used
+                    #insert_site = bar.span()[0]
+                    print('Sequence '+str(i+1)+ 'had an insertion weirdly')
+                    if bar.span()[0] >= 300:
+                       insert_site = bar.span()[0]-4
+                       insertions.append(insert_site)
+                       chunk_dict.update({insert_site:seq_chunks})
+                    else:
+                       insert_site = bar.span()[0]
+                       insertions.append(insert_site)
+                       chunk_dict.update({insert_site:seq_chunks})
+
+                    break
+                #if insert_site != 0:
             
-            if num_chunks == 0:
-                end_pos = len(final_seqs[i].seq)-1-bar.span()[1]
-            else:
-                end_pos = end_pos-bar.span()[1]
-            num_chunks += 1
-            insert_site = insert_site-(bar.span()[1])
-            span_length = abs(bar.span()[1]-bar.span()[0])
-            seq_chunks.append(span_length)
-            total_len += bar.span()[1]
-            print('total length: '+str(total_len))
-            continue
-          #elif abs((bar.span()[1]-bar.span()[0])+1) == (len(final_seqs[i].seq.strip('-'))-total_len):
-      elif (abs((bar.span()[1]-bar.span()[0])) > chunk_size) and (abs((bar.span()[1]-bar.span()[0])+1) != (len(final_seqs[i].seq.strip('-'))-total_len)): #this gets rid of sequences with big chunks
-            discarded_reads += 1
-            print(str(i)+' had too large of a chunk')
-            break
-      elif num_chunks > max_chunks: #too many chunks leads to alignment being discarded
-            discarded_reads +=1
-            print(str(i)+' had too many chunks')
-            break
-               # if num_chunks == 0:
-               #    end_pos = len(template)-1-bar.span()[1]
-               # else:
-               #    end_pos = end_pos-bar.span()[1]
-               # insert_site = insert_site- (bar.span()[1])
-               # span_length = abs(bar.span()[1]-bar.span()[0])
-               # seq_chunks.append(span_length)
-               # total_len += bar.span()[1]
-               # num_chunks +=1
-               # continue
-           # elif ((bar.span()[1]-bar.span()[0]) >=8) and (bar.span()[0] == 0):
-           #     insert_site += len(template)-bar.span()[0]
-           #     num_chunks += 1
-           #     insertions[i] = insert_site
-           #     span_length = abs(bar.span()[1]-bar.span()[0])
-           #     seq_chunks.append(span_length)
-           #     total_len += span_length
-           #     break
-    #           elif num_chunks >= 5:
-    #               span_length = bar.span()[1]-bar.span()[0]
-    #               seq_chunks.append(span_length)
-    #               break           
-      else:
-            #insert_site += len(template)-bar.span()[0]
-            end_pos = bar.span()[0]
-            span_length = abs(bar.span()[1]-bar.span()[0])
-            seq_chunks.append(span_length)
-            #insert_site = len(final_seqs[i].seq)-bar.span()[0]
-            insert_site += len(final_seqs[i].seq)-bar.span()[0]
-            insertions.append(insert_site)
-            chunk_dict.update({insert_site:seq_chunks})
-            print('sequence '+str(i+1) +' had an insertion weirdly')
-            #num_chunks +=1
-            break
+    # insertions.append(insert_site)
+            
+
     
-    print (str(reads_at_end)+ ' reads reached the end without a suitable insertion')    
-    print (str(discarded_reads)+' reads were discarded :(')
     
-        
     return chunk_dict, insertions
     
 def insertion_site_freq(final_seqs,template,reaction_number):
