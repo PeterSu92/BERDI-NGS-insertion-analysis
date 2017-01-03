@@ -78,12 +78,6 @@ def filter_seqs(seqs,q_re):
     outputs:
             list of Seq objects that have sequence in them.
     """
-            #text_logger = logging.getLogger(_name_+'.text_logger)
-            
-           # text_logger.info('Started regex filter: %s',q_re.pattern)
-    #lamye = [s.seq for s in seqs] #just checking/troubleshooting
-    #f_seqs = list(seqs)
-    #out_l = [s for s in seqs if q_re.search(str(s.seq))]
     out_l = [s for s in seqs if q_re.search(str(s.seq))]        
             #so here we compile a list of sequences from the fastq file, stripping away
             #the other data            
@@ -108,12 +102,6 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
             r_filt_seq - list of sequences to filter for on the paired-end side
         """
         
-        # setup loggers - not sure if entirely necessary
-        #text_logger = logging.getLogger(__name__+'.text_logger')
-        #csv_logger = logging.getLogger(__name__+'.csv_logger')
-        
-        #text_logger.info('Starting filtering routine for %s',f_name)
-        
         # Compile regexes
         f_res = compile_res(f_filt_seqs)
         pe_res = compile_res(r_filt_seqs)
@@ -127,8 +115,6 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         print(str(len(f_seqs1))+' forward reads and '+str(len(pe_seqs1))+' paired end reads initially')  
         #Filter for quality
     
-        
-      
         # These sequences with "2" at the end will be filtered for the sequences
         # corresponding to the MBP primer, ZFP primer, and the transposon scar
         f_seqs2 = []
@@ -148,23 +134,23 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         #while the pe_seqs2 will contain the other (so indices will be messed up until I figure out which
         #read consistently has which CS). TLDR take indices in this next part with a grain of salt, and it's
         #overall kind of clunky. 
-        new_f_list = [s for s in f_seqs2[0]]
+        new_f_list = [s for s in f_seqs2[1]]
         
         for i in f_seqs2[2]:
             new_f_list.append(i)
                     #create dummy lists to help populate dictionary of reads that contain both the CS and barcode
-        xx = [s.id for s in f_seqs2[0]]
-                #In this case this is the foward primer
+        xx = [s.id for s in f_seqs2[1]]
+                #In this case this is the reverse primer binding to MBP
         xx = list(set(xx))
         xy = [s.id for s in f_seqs2[2]]
                 #in this case this is the transposon scar
         xy = list(set(xy))
         final_pe_list = []
-        new_pe_list = [s for s in pe_seqs2[0]]
+        new_pe_list = [s for s in pe_seqs2[1]]
         for i in pe_seqs2[2]:
             new_pe_list.append(i)
                 
-        aa = [s.id for s in pe_seqs2[0]]
+        aa = [s.id for s in pe_seqs2[1]]
                 #This is CS1 here
         aa = list(set(aa))
         ab= [s.id for s in pe_seqs2[2]]
@@ -189,7 +175,6 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         print(str(len(seqs))+' forward reads survived the Phred score quality filter')
         # Note this returns only the forward sequences
         # Now the final step of aligning and filtering by alignment scores happens
-        #newSeqs = alignment_filter(seqs,template_file, gapopen = 10, gapextend = 0.5, lo_cutoff = 300)
         #run the alignment to the template file, varying cutoff by length
         #initialize bins
         bin1 = [] #bin1 is all sequences under 50 bases
@@ -219,9 +204,7 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
                 elif ((len(str(s.seq)) >= 250) and (len(str(s.seq)) < 300)):
                     bin6.append(s)
         newSeqs = []
-        # Run alignment with score cutoffs based on read length
-        # for i in range(len(big_bin)):
-        #     print('Bin'+str(i+1)+'has '+str(len(big_bin[i]))+' reads')        
+        # Run alignment with score cutoffs based on read length       
         for i in range(len(big_bin)):
                 if len(big_bin[i]) == 0:
                     print ('Bin'+str(i+1)+' has no reads')
@@ -271,7 +254,6 @@ def cull_alignments(aln_data, lo_cutoff, hi_cutoff):
             if (alignment.annotations['score'] >= lo_cutoff) and (alignment.annotations['score'] < hi_cutoff):
                         #Template should have no gaps and should contain the whole
                         # non-template sequence
-                #if not str(alignment[0].seq).count('-') > 0:
                             joined_align = [r for r,t in zip(alignment[1],alignment[0]) if t != '-']
                             new_read = SeqRecord(''.join(joined_align))
                             new_seqs.append(new_read)
@@ -310,12 +292,6 @@ def alignment_filter(seqs,template, lo_cutoff,hi_cutoff, bin_num, gapopen = 10, 
     # for some reason this generator stuff is not working for me
     aln_data_list = list(aln_data)
     new_seqs = cull_alignments(aln_data_list, lo_cutoff, hi_cutoff)
-            
-    #if cleanup:
-    #   logging.info('Cleaning up temp files')
-    #   os.remove(template_fname)
-    #   os.remove(seqs_fname)
-    #   os.remove(ofilen)
                
     return new_seqs
         
@@ -348,8 +324,6 @@ def gen_copied_seq_function(f_res):
             return lambda s: get_copied_seq(s, f_res)
             # lambda s is just like f(s)
             
- ### This needs to change to include paired ends i.e.
-###  def filter_pe_mistmatch(f_seqs,pe_seqs,copied_func)
 def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needleman-Wunsch algorithm for paired-end filtering.
     """
     
@@ -380,7 +354,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                 #isn't zero, so if the paired-end coordinates were found, the block below
                 # will be run
                 co_ct += 1 
-                copied = copied_func(s) #Get part of the sequence that was actually copied
+                #copied = copied_func(s) #Get part of the sequence that was actually copied - not using as of now
                 # print('copied is type ',type(copied))
                 temp_f_seq = copied
                 p_index = pe_coordL.index(get_coords(s))        
@@ -423,18 +397,13 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                 if (alignment.annotations['score'] >= lo_cutoff) and (alignment.annotations['score'] < hi_cutoff):
                         #Template should have no gaps and should contain the whole
                         # non-template sequence
-                #if not str(alignment[0].seq).count('-') > 0:
                             joined_align = [r for r,t in zip(alignment[1],alignment[0]) if t != '-']
                             pe_read = SeqRecord(''.join(joined_align))
-
-                #if str(pe_seqs[p_index].reverse_complement().seq).find(str(copied.seq)):
-                    # #Now this filters on the paired end sequence match
                 aln_ct += 1
-                #bar = re.search('[AGCT]+',str(aln_data[0][1].seq)[-1:0:-1])
                 if f_res[2] not in str(s.seq): #if the scar isn't found on the forward read 
-                    bar = re.search('[AGCT]+',str(pe_read.seq)[-1:0:-1]) #search backwards through reverse compliment of PE read, find first base that aligned.
-                    match_coord = len(pe_read.seq)-bar.span()[0] #since search is backwards, subtract index of first base from overall length. 
-                    pe_append = pe_read[match_coord:list(pe_res[2].finditer(str(pe_read.seq)))[-1].start()] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
+                    bar = re.search('[AGCT]+',str(pe_read.seq)[0:-1:1]) #search forwards through reverse complement of PE read, find first base that aligned.
+                    match_coord = bar.span()[0] #since search is backwards, subtract index of first base from overall length. 
+                    pe_append = pe_read[f_res[2].search(str(s.seq)).end():match_coord] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                     s.seq = s.seq+pe_append
                     matched_seq_list.append(s)
             print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
@@ -442,7 +411,6 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
     print ("")
     
     count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches
-    #matched_seq_list = [copied_func(s) for s in f_seqs]
             
     return matched_seq_list
     
@@ -470,14 +438,11 @@ def insertion_chunks(final_seqs):
     chunk_size = 3
     max_chunks = 2
     reads_at_end = 0
-# if reaction_number in reverse_search:
-#     end_pos_default = -1
-#     final_pos = 0
-# elif reaction_number in forward_search:
-#     end_pos_default = 0
-#     final_pos = -1
-# else:
-#     print('Error your numbering is terrible')
+    large_chunk_reads = 0
+    end_dashes = 0
+    perfect_matches = 0
+    max_chunks_exceeded = 0
+    other_scenario = 0
     discarded_reads = 0
 
     for i in range(len(final_seqs)):
@@ -488,18 +453,15 @@ def insertion_chunks(final_seqs):
            insert_site = 0
            
            total_len = 0
-           print('Current sequence: ' +str(i+1)) #keep this only for test sequences
+           #print('Current sequence: ' +str(i+1)) #keep this only for test sequences
            if str(final_seqs[i].seq)[-1] == '-':
               discarded_reads += 1
-              print('Sequence '+str(i+1)+ ' had dashes at the 3prime end')
+              end_dashes +=1
               continue
            while total_len < len(final_seqs[i].seq):
               bar=re.search('[AGCT]+',str(final_seqs[i].seq)[end_pos:-1:1]) #forward search: from start to finish
               if str(type(bar)) == "<type 'NoneType'>":
-                   #If this happens, we'll know the last base of the previous
-                   # chunk was the insertion site, so we set it as such here.                
-                #print('Sequence '+str(i+1)+'end reached')
-                    #insert_site = end_pos
+                   #If this happens, we'll know the end was reached without finding a suitable insertion
                     reads_at_end += 1
                     break
 
@@ -512,7 +474,7 @@ def insertion_chunks(final_seqs):
                      insertions.append(insert_site)
                      chunk_dict.update({insert_site:seq_chunks})
                      seq_chunks.append(bar.span()[1]-bar.span()[0])
-                     print('Sequence '+str(i+1)+' had a perfect match')
+                     perfect_matches +=1
                      break
               elif abs((bar.span()[1]-bar.span()[0])) <= chunk_size: #if a chunk is small enough, set index correspondingly but keep searching through the alignment
                      num_chunks += 1
@@ -524,55 +486,29 @@ def insertion_chunks(final_seqs):
                      continue
               elif (abs((bar.span()[1]-bar.span()[0])) > chunk_size) and (abs((bar.span()[1]-bar.span()[0])) != len(final_seqs[i].seq.lstrip('-'))-total_len): #if chunk too large, get rid of the alignment
                      discarded_reads += 1
-                     print('Sequence '+str(i+1)+' had too large of a chunk')
+                     large_chunk_reads +=1
                      break
               elif len(final_seqs[i].seq.strip('-')) != len(final_seqs[i].seq.lstrip('-')): #gets rid of alignments with gaps at the 3' end
                      discarded_reads +=1
                      break
               elif num_chunks > max_chunks: #too many chunks leads to an alignment being thrown out. 
                      discarded_reads += 1
+                     max_chunks_exceeded +=1
                      break
-                    # elif abs((bar.span()[1]-bar.span()[0])) <=8: #if the contiguous chunk of DNA is too small, move on but save the indexing and the length searched so that the
-                        # insert site isn't miscaculated, as the next iteration of the search starts the regex indexing back at 0
-                        #print('an insertion had a small chunk;'+ ' end pos: '+str(bar.span()[1]))
-                        # end_pos += bar.span()[1]
-                        # #we add the entire length of the spanned region, through the chunk of DNA spanned, to the insert site
-                        # insert_site += (bar.span()[1])
-                        # span_length = abs(bar.span()[1]-bar.span()[0])
-                        # seq_chunks.append(span_length)
-                        # total_len += bar.span()[1]
-                        # num_chunks +=1
-                        # continue
-                    # elif ((bar.span()[1]-bar.span()[0]) >=8) and (bar.span()[0] == 0): #this shouldn't ever really happen for most PCRs in this category. 
-                    #     insert_site += bar.span()[0]
-                    #     print('Insertion at start of template') #printing this will tell us if this happens
-                    #     num_chunks += 1
-                    #     insertions[i] = insert_site
-                    #     span_length = abs(bar.span()[1]-bar.span()[0])
-                    #     seq_chunks.append(span_length)
-                    #     total_len += span_length
-                    #     break
          
-              else: #This should not happen now, but if it does, it sets the insert site as the FIRST base of the contiguous region, which is why bar.span()[0] is used
-                    #insert_site = bar.span()[0]
-                    print('Sequence '+str(i+1)+ 'had an insertion weirdly')
-                    if bar.span()[0] >= 300:
-                       insert_site = bar.span()[0]-4
-                       insertions.append(insert_site)
-                       chunk_dict.update({insert_site:seq_chunks})
-                    else:
-                       insert_site = bar.span()[0]
-                       insertions.append(insert_site)
-                       chunk_dict.update({insert_site:seq_chunks})
-
+              else: #This should not happen now, but if it does, will document it
+                    other_scenario +=1
                     break
-                #if insert_site != 0:
-            
-    # insertions.append(insert_site)
-            
 
-    
-    
+    print (str(reads_at_end)+ ' reads reached the end without a suitable insertion')    
+    print (str(discarded_reads)+' reads were discarded :(')
+    print(str(large_chunk_reads)+' reads had too large of a chunk')
+    print(str(max_chunks_exceeded)+' reads had too many chunks')
+    print(str(end_dashes)+' reads had end dashes')
+    print(str(perfect_matches)+' reads are perfect matches')
+    print(str(other_scenario) +' reads did not satisfy any of the criteria')
+
+
     return chunk_dict, insertions
     
 def insertion_site_freq(final_seqs,template,reaction_number):
@@ -605,12 +541,6 @@ def insertion_site_freq(final_seqs,template,reaction_number):
     return insert_dict,coverage
 
 
-
-
-
-
-    
-    
 def figplot_scatter(ax,template,max_frequency):
     '''
     Set of simple commands to make the scatterplot figure look nice
@@ -626,10 +556,7 @@ def figplot_scatter(ax,template,max_frequency):
     ax.set_ylim([0,max_frequency])
     ax.set_xlabel('Insertion site',fontsize = 30)
     ax.set_ylabel('Frequency',fontsize = 30)
-    #ax.legend(fontsize=20)
     
-
-
 
 #### Actually running the code ######
 import sys, getopt, os
@@ -727,77 +654,13 @@ def main(argv):
     # fig1.savefig('filename.pdf')
     #
     ## Write this to a .csv file, need to write into columns instead of possible
-    #os.getcwd()
     outp_file_loc = '../CSV_Results/'
     with open(outp_file_loc+outp_name+'_results.csv','w') as file:
         # should result in rxn1_828_829_F_results.csv as output
         writer = csv.writer(file)
         writer.writerow(["insertion","count"])
         writer.writerows(zip(real_insertions,list(insert_dict1.values())))
-        # should result in rxn1_828_829_F_results.csv as output
-        # file.write(str(real_insertions))
-        # file.write('\n')
-        # file.write(str(insert_dict1.values()))
-        # file.write('\n')
-        # file.write('Coverage ='+str(coverage)+'%')
         file.close()
 
 if __name__ == "__main__":
    main(sys.argv[1:])
-##
-#template_file = 'temptemplate.fa'
-#template = str(list(SeqIO.parse(template_file,'fasta'))[0].seq)
-#print('Template is '+str(len(template)) +'bp long')
-##f_name = '~\\Box Sync\\PERMUTE 2.0 Biosensor creation\\Deep sequencing\\Data\\MiSeq185_Peter Su_15337-33617597\\Peter1_1A-41111250\\Peter1-1A_S113_L001_R1_001.fastq.gz'
-##pe_name = '~\\Box Sync\\PERMUTE 2.0 Biosensor creation\\Deep sequencing\\Data\\MiSeq185_Peter Su_15337-33617597\\Peter1_1A-41111250\\Peter1-1A_S113_L001_R2_001.fastq.gz'
-#
-##lepath = os.path.expanduser('~\Box/ Sync\PERMUTE/ 2.0/ Biosensor/ creation\\Deep/ sequencing\\filter/ sequences\\')
-##cur_dir = os.getcwd()
-####Gather all csv files in the filter_sequences folder
-#lepath = 'C:\\Users\\Peter Su\\Box Sync\\PERMUTE 2.0 Biosensor creation\\Deep sequencing\\filter sequences'
-#f_filt_seqs_master = glob.glob(lepath+'/*.csv')#Gather files for forward and reverse fitler sequences
-#forward_files = []
-#reverse_files = []
-#for files in f_filt_seqs_master:
-#    if 'F' in files:
-#        forward_files.append(files)
-#    elif 'R' in files:
-#        reverse_files.append(files)
-##
-#f_filt_seqs_file1 = forward_files[0]
-#
-#f_df = pd.read_csv(f_filt_seqs_file1)
-#f_filt_seqs = f_df['sequence'].tolist()
-#r_filt_seqs = []
-##Generate reverse compliment for r_filt_seqs
-#r_filt_seqs = [str(Seq(seq).reverse_complement()) for seq in f_filt_seqs]
-####
-#####
-#####
-#####
-#final_sequences = filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs)
-#print(str(len(final_sequences))+' forward reads survived the final filtering')
-#insertions1 = insertion_site_freq(final_sequences,template)
-#insert_dict1 = insertions1[0] #avoiding using similar names in the workspace
-#coverage = insertions1[1]
-#print(str(len(coverage)+' total insertions', str(coverage)+"% coverage")
-#######
-#######
-#fig1 = plt.figure(figsize = (30,20))
-#ax = fig1.add_subplot(1,1,1)
-#ax.scatter(list(insert_dict1.keys()),list(insert_dict1.values()))
-#max_frequency = max(list(insert_dict1.values()))
-#figplot_scatter(ax,template,max_frequency)
-# Append filename below as desired. 
-#fig1.savefig('Insertion frequency PCR2 replicate 1 round 2.pdf')
-###### This code below is commented out because of the file name. Change as desired
-###### fig1.savefig('filename.pdf')
-#######
-######## Write this to a .csv file, need to write into columns instead of possible
-#with open('insert_site PCR1 round 2.csv','w') as file:
-#    file.write(str(insert_dict1.keys()))
-#    file.write('\n')
-#    file.write(str(insert_dict1.values()))
-#    file.write('\n')
-#    file.write('Coverage ='+str(coverage)+'%')
-#    file.close()
