@@ -106,6 +106,7 @@ def insertion_chunks(final_seqs):
 # else:
 #     print('Error your numbering is terrible')
     discarded_reads = 0
+
     for i in range(len(final_seqs)):
            end_pos = 0 #forward search starts at the beginning
            #insert_site = 0
@@ -114,33 +115,40 @@ def insertion_chunks(final_seqs):
            insert_site = 0
            
            total_len = 0
-
+           print('Current sequence: ' +str(i+1)) #keep this only for test sequences
+           if str(final_seqs[i].seq)[-1] == '-':
+              discarded_reads += 1
+              print('Sequence '+str(i+1)+ ' had dashes at the 3prime end')
+              continue
            while total_len < len(final_seqs[i].seq):
               bar=re.search('[AGCT]+',str(final_seqs[i].seq)[end_pos:-1:1]) #forward search: from start to finish
-              if str(type(bar)) == "<class 'NoneType'>":
+              if str(type(bar)) == "<type 'NoneType'>":
                    #If this happens, we'll know the last base of the previous
                    # chunk was the insertion site, so we set it as such here.                
-                    #print('end reached')
+                print('Sequence '+str(i+1)+'end reached')
                     #insert_site = end_pos
                 if end_pos >= 300: #this prevents a nonphysical insertion from happening
                     end_pos = end_pos-4
                     insertions.append(insert_site)
                 break
               elif abs((bar.span()[1]-bar.span()[0])+1) == (len(final_seqs[i].seq.lstrip('-').strip('-'))): #perfect match occurs
-                     insert_site = bar.span()[0] 
+                     insert_site = bar.span()[0] #forward search stops at the first base of the DNA chunk
                      insertions.append(insert_site)
                      chunk_dict.update({insert_site:seq_chunks})
+                     seq_chunks.append(bar.span()[1]-bar.span()[0])
+                     print('Sequence '+str(i+1)+' had a perfect match')
                      break
               elif abs((bar.span()[1]-bar.span()[0])) <= chunk_size: #if a chunk is small enough, set index correspondingly but keep searching through the alignment
                      num_chunks += 1
                      end_pos += bar.span()[1]
                      insert_site += bar.span()[1]
                      span_length = abs(bar.span()[1]-bar.span()[0])
+                     seq_chunks.append(span_length)
                      total_len += bar.span()[1]
                      continue
-              elif abs((bar.span()[1]-bar.span()[0])+1) < (len(final_seqs[i].seq.lstrip('-').strip('-'))-total_len) and num_chunks == max_chunks: #if max chunks have been parsed through and the next chunk
-                # isn't a perfect match, throw it out. 
+              elif (abs((bar.span()[1]-bar.span()[0])) > chunk_size) and (abs((bar.span()[1]-bar.span()[0])) != len(final_seqs[i].seq.lstrip('-'))-total_len): #if chunk too large, get rid of the alignment
                      discarded_reads += 1
+                     print('Sequence '+str(i+1)+' had too large of a chunk')
                      break
               elif len(final_seqs[i].seq.strip('-')) != len(final_seqs[i].seq.lstrip('-')): #gets rid of alignments with gaps at the 3' end
                      discarded_reads +=1
@@ -169,8 +177,9 @@ def insertion_chunks(final_seqs):
                     #     total_len += span_length
                     #     break
          
-              else: #This will stop the loop in most cases, adding the insert site as the FIRST base of the contiguous region, which is why bar.span()[0] is used
+              else: #This should not happen now, but if it does, it sets the insert site as the FIRST base of the contiguous region, which is why bar.span()[0] is used
                     #insert_site = bar.span()[0]
+                    print('Sequence '+str(i+1)+ 'had an insertion weirdly')
                     if bar.span()[0] >= 300:
                        insert_site = bar.span()[0]-4
                        insertions.append(insert_site)
