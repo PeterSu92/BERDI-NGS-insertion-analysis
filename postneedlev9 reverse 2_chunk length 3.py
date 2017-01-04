@@ -92,9 +92,10 @@ def insertion_chunks(final_seqs):
         for each particular read. Will have redundant entries in most cases, as
         our method often results in multiple insertions at any given site.
     '''
-    chunk_dict = {}
+chunk_dict = {}
+
     #check_list = []
-    insertions = []
+insertions = []
 # if reaction_number in reverse_search:
 #     end_pos_default = -1
 #     final_pos = 0
@@ -103,20 +104,25 @@ def insertion_chunks(final_seqs):
 #     final_pos = -1
 # else:
 #     print('Error your numbering is terrible')
-    discarded_reads = 0
-    chunk_size = 3
-    reads_at_end = 0
-    for i in range(len(final_seqs)):
-       end_pos = -1
-       insert_site = 0
-       num_chunks = 0
-       seq_chunks = []
-       max_chunks = 2
-       
-       total_len = 0
-       while total_len < len(final_seqs[i].seq):
-          bar=re.search('[AGCT]+',str(final_seqs[i].seq)[end_pos:0:-1])
-          if str(type(bar)) == "<type 'NoneType'>":
+discarded_reads = 0
+chunk_size = 3
+reads_at_end = 0
+for i in range(len(final_seqs)):
+   end_pos = -1
+   insert_site = 0
+   num_chunks = 0
+   seq_chunks = []
+   max_chunks = 2
+   
+   total_len = 0
+   print('Current sequence: ' +str(i+1))
+   if str(final_seqs[i].seq)[0] == '-':
+      discarded_reads += 1
+      print(str(i)+' had upstream dashes')
+      continue
+   while total_len < len(final_seqs[i].seq):
+      bar=re.search('[AGCT]+',str(final_seqs[i].seq)[end_pos:0:-1])
+      if str(type(bar)) == "<class 'NoneType'>":
        #If this happens, we'll know the last base of the previous
        # chunk was the insertion site, so we set it as such here.                
        #if end_pos != 0: 
@@ -124,29 +130,35 @@ def insertion_chunks(final_seqs):
             reads_at_end += 1
             #insert_site = end_pos
             insertions.append(end_pos)
+            print(str(i)+' read at end')
             break
-          elif abs((bar.span()[1]-bar.span()[0])+1) == (len(final_seqs[i].seq.strip('-'))-total_len): ##perfect match
+      elif abs((bar.span()[1]-bar.span()[0])+1) == (len(final_seqs[i].seq.strip('-'))-total_len): ##perfect match
             insert_site = len(final_seqs[i].seq)-bar.span()[0]
             insertions.append(insert_site) #length of the entire alignment minus the length spanned before the first base
             chunk_dict.update({insert_site:seq_chunks})
+            print(str(i)+' is a perfect match')
             break
-          elif abs((bar.span()[1]-bar.span()[0])) <= chunk_size: #if a chunk is small enough, set index correspondingly but keep searching through the alignment
-            num_chunks += 1
+      elif abs((bar.span()[1]-bar.span()[0])) <= chunk_size: #if a chunk is small enough, set index correspondingly but keep searching through the alignment
+            
             if num_chunks == 0:
                 end_pos = len(final_seqs[i].seq)-1-bar.span()[1]
             else:
                 end_pos = end_pos-bar.span()[1]
+            num_chunks += 1
             insert_site = insert_site-(bar.span()[1])
             span_length = abs(bar.span()[1]-bar.span()[0])
             seq_chunks.append(span_length)
             total_len += bar.span()[1]
+            print('total length: '+str(total_len))
             continue
           #elif abs((bar.span()[1]-bar.span()[0])+1) == (len(final_seqs[i].seq.strip('-'))-total_len):
-          elif len(final_seqs[i].seq.lstrip('-')) != len(final_seqs[i].seq.strip('-')): #this gets rid of sequences with dashes on the upstream end
+      elif (abs((bar.span()[1]-bar.span()[0])) > chunk_size) and (abs((bar.span()[1]-bar.span()[0])+1) != (len(final_seqs[i].seq.strip('-'))-total_len)): #this gets rid of sequences with big chunks
             discarded_reads += 1
+            print(str(i)+' had too large of a chunk')
             break
-          elif num_chunks > max_chunks: #too many chunks leads to alignment being discarded
+      elif num_chunks > max_chunks: #too many chunks leads to alignment being discarded
             discarded_reads +=1
+            print(str(i)+' had too many chunks')
             break
                # if num_chunks == 0:
                #    end_pos = len(template)-1-bar.span()[1]
@@ -170,7 +182,7 @@ def insertion_chunks(final_seqs):
     #               span_length = bar.span()[1]-bar.span()[0]
     #               seq_chunks.append(span_length)
     #               break           
-       else:
+      else:
             #insert_site += len(template)-bar.span()[0]
             end_pos = bar.span()[0]
             span_length = abs(bar.span()[1]-bar.span()[0])
@@ -179,7 +191,7 @@ def insertion_chunks(final_seqs):
             insert_site += len(final_seqs[i].seq)-bar.span()[0]
             insertions.append(insert_site)
             chunk_dict.update({insert_site:seq_chunks})
-            #print('sequence '+str(i+1) +' had an insertion')
+            print('sequence '+str(i+1) +' had an insertion weirdly')
             #num_chunks +=1
             break
     
