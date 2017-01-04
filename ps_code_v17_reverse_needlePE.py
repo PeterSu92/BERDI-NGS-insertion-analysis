@@ -353,7 +353,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                 co_ct += 1 
                 #copied = copied_func(s) #Get part of the sequence that was actually copied - not using as of now
                 # print('copied is type ',type(copied))
-                temp_f_seq = copied
+                #temp_f_seq = copied
                 p_index = pe_coordL.index(get_coords(s))        
                 with open('temp_seq_PE.fa','w') as sh: #create temporary seq file, hopefully re-written each time
                 #temp_f_seq = copied
