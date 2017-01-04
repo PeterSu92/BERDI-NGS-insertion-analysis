@@ -168,7 +168,9 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         # Now that only sequences containing BOTH the CS and the TR have been filtered for,
         # the paired-end matching can occur
         
-        seqs = filter_pe_mismatch(f_seqs3,pe_seqs3,f_filt_seqs[2]) #need to fix later, still uses f_res[2] as copied_func
+        s1 = filter_pe_mismatch(f_seqs3,pe_seqs3,f_filt_seqs[2])
+        seqs = s1[0]
+        read_len_postalign_list - s1[1]
         print(str(len(seqs))+' forward reads have a paired-end match')
         
         seqs = quality_filter(seqs,q_cutoff=20)
@@ -334,6 +336,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
     """
     #initialize variables
     matched_seq_list = []
+    read_len_list = [] #list of read lengths regardless of whether or not they pass the alignment score filter
     co_ct = 0 #number of sequences with coordinate matches
     aln_ct = 0 #number of sequences with paired end sequence matches
     #get coordinate list in the paired end reads
@@ -371,6 +374,8 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
             #initialize cutoff scores
             lo_cutoff = 0
             hi_cutoff = 1500
+            read_len = len(str(aln_data[0][1].seq).lstrip('-').strip('-'))
+            read_len_list.append(read_len)
             if len(str(aln_data[0][1].seq).lstrip('-').strip('-')) < 50 :
                 lo_cutoff = bin_scores[0][0]
                 hi_cutoff = bin_scores[0][1]
@@ -390,7 +395,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                 lo_cutoff = bin_scores[5][0]
                 hi_cutoff = bin_scores[5][1]
 
-            for alignment in aln_data:
+            for alignment in aln_data: ##### This might need to be earlier? Hard to say, since the cause of these template gaps is odd.
                 if (alignment.annotations['score'] >= lo_cutoff) and (alignment.annotations['score'] < hi_cutoff):
                         #Template should have no gaps and should contain the whole
                         # non-template sequence
@@ -415,7 +420,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
     count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches
     #matched_seq_list = [copied_func(s) for s in f_seqs]
             
-    return matched_seq_list
+    return matched_seq_list,read_len_list
     
 #Insertion site functions and code
 def insertion_chunks(final_seqs):
