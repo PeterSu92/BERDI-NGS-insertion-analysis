@@ -148,23 +148,23 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         #while the pe_seqs2 will contain the other (so indices will be messed up until I figure out which
         #read consistently has which CS). TLDR take indices in this next part with a grain of salt, and it's
         #overall kind of clunky. 
-        new_f_list = [s for s in f_seqs2[0]]
+        new_f_list = [s for s in f_seqs2[1]]
         
         for i in f_seqs2[2]:
             new_f_list.append(i)
                     #create dummy lists to help populate dictionary of reads that contain both the CS and barcode
-        xx = [s.id for s in f_seqs2[0]]
-                #In this case this is the foward primer
+        xx = [s.id for s in f_seqs2[1]]
+                #In this case this is the reverse primer
         xx = list(set(xx))
         xy = [s.id for s in f_seqs2[2]]
-                #in this case this is the transposon scar
+                #in this case this is the transposon scar (f_res[2] is always the transposon scar)
         xy = list(set(xy))
         final_pe_list = []
-        new_pe_list = [s for s in pe_seqs2[0]]
+        new_pe_list = [s for s in pe_seqs2[1]]
         for i in pe_seqs2[2]:
             new_pe_list.append(i)
                 
-        aa = [s.id for s in pe_seqs2[0]]
+        aa = [s.id for s in pe_seqs2[1]]
                 #This is CS1 here
         aa = list(set(aa))
         ab= [s.id for s in pe_seqs2[2]]
@@ -339,7 +339,7 @@ def get_copied_seq(s,f_res):
             # Finds part of the template sequence by basically copying the read sequence inbetween barcode and common
             # sequence
             #return s[f_res[0].search(str(s.seq)).end():list(f_res[1].finditer(str(s.seq)))[-1].start()]
-            return s[f_res[0].search(str(s.seq)).start():list(f_res[2].finditer(str(s.seq)))[-1].start()]            
+            return s[f_res[2].search(str(s.seq)).end():list(f_res[1].finditer(str(s.seq)))[-1].end()]            
             # Indices will vary! Must find the sequence in between the f_res sequences
             # Don't understand finditer super well
 def gen_copied_seq_function(f_res):
