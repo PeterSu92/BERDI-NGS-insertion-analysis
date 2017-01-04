@@ -168,8 +168,17 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         # Now that only sequences containing BOTH the CS and the TR have been filtered for,
         # the paired-end matching can occur
         
-        seqs = filter_pe_mismatch(f_seqs3,pe_seqs3,f_filt_seqs[2])
+        s1 = filter_pe_mismatch(f_seqs3,pe_seqs3,f_filt_seqs[2])
+        seqs = s1[0]
+        read_len_postalign_list = s1[1]
         print(str(len(seqs))+' forward reads have a paired-end match')
+
+        with open('read_lengths_PE.csv','w') as file:
+        # should result in rxn1_828_829_F_results.csv as output
+            writer = csv.writer(file)
+            writer.writerow("read length")
+            writer.writerows(read_len_postalign_list)
+            file.close()
         
         seqs = quality_filter(seqs,q_cutoff=20)
         print(str(len(seqs))+' forward reads survived the Phred score quality filter')
@@ -337,6 +346,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
     """
     #initialize variables
     matched_seq_list = []
+    read_len_list = [] #list of read lengths regardless of whether or not they pass the alignment score filter
     co_ct = 0 #number of sequences with coordinate matches
     aln_ct = 0 #number of sequences with paired end sequence matches
     #get coordinate list in the paired end reads
@@ -347,7 +357,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
     print('begin f_seqs loop:', len(f_seqs))
 
     si = 0
-    
+
     for s in f_seqs:
             if pe_coordL.count(get_coords(s)):
                 #Apparently the above line returns a boolean so long as the count
@@ -374,6 +384,8 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
             #initialize cutoff scores
             lo_cutoff = 0
             hi_cutoff = 1500
+            read_len = len(str(aln_data[0][1].seq).lstrip('-').strip('-'))
+            read_len_list.append(read_len)
             if len(str(aln_data[0][1].seq).lstrip('-').strip('-')) < 50 :
                 lo_cutoff = bin_scores[0][0]
                 hi_cutoff = bin_scores[0][1]
@@ -412,7 +424,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
     
     count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches
             
-    return matched_seq_list
+    return matched_seq_list,read_len_list
     
 #Insertion site functions and code
 def insertion_chunks(final_seqs):
