@@ -175,9 +175,8 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         
         with open('read_lengths_PE.csv','w') as file:
         # should result in rxn1_828_829_F_results.csv as output
-            writer = csv.writer(file)
-            writer.writerow("read length")
-            writer.writerows(read_len_postalign_list)
+            file.write("read length")
+            file.write(str(read_len_postalign_list)
             file.close()
 
 
