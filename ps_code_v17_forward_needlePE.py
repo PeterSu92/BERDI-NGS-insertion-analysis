@@ -175,8 +175,9 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
 
         with open('read_lengths_PE.csv','w') as file:
         # should result in rxn1_828_829_F_results.csv as output
-            file.write("read length")
-            file.write(str(read_len_postalign_list))
+            writer = csv.writer(file)
+            writer.writerow(["fwd reads","pe reads"])
+            writer.writerows(zip(s1[1][0],s1[1][1]))
             file.close()
         
         seqs = quality_filter(seqs,q_cutoff=20)
@@ -383,8 +384,9 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
             #initialize cutoff scores
             lo_cutoff = 0
             hi_cutoff = 1500
-            read_len = len(str(aln_data[0][1].seq).lstrip('-').strip('-'))
-            read_len_list.append(read_len)
+            f_read_len = len(str(aln_data[0][0].seq).lstrip('-').strip('-'))
+            pe_read_len = len(str(aln_data[0][1].seq).lstrip('-').strip('-'))
+            
             if len(str(aln_data[0][1].seq).lstrip('-').strip('-')) < 50 :
                 lo_cutoff = bin_scores[0][0]
                 hi_cutoff = bin_scores[0][1]
@@ -417,8 +419,11 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                     pe_append = pe_read[copied_func.search(str(s.seq)).end():match_coord] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                     s.seq = s.seq+pe_append
                     matched_seq_list.append(s)
+            read_len_list.append(f_read_len)
+            read_len_list.append(pe_read_len)
             print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
             si = si + 1
+
     print ("")
     
     count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches
