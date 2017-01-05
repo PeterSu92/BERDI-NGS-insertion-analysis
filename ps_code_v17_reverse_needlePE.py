@@ -420,8 +420,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                     pe_append = pe_read[match_coord:list(copied_func.finditer(str(pe_read.seq)))[-1].start()] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                     s.seq = s.seq[0:(len(s.seq)-len(pe_append))]+pe_append
                     matched_seq_list.append(s)
-            read_len_list.append(f_read_len)
-            read_len_list.append(pe_read_len)
+            read_len_list = [f_read_len,pe_read_len]
             print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
             si = si + 1
     print ("")
