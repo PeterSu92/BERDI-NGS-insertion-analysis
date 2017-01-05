@@ -184,7 +184,7 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         print(str(len(seqs))+' forward reads survived the Phred score quality filter')
         # Note this returns only the forward sequences
         # Now the final step of aligning and filtering by alignment scores happens
-        #run the alignment to the template file, varying cutoff by length
+        #run the alignment to the template file, varying cutoff by length 
         #initialize bins
         bin1 = [] #bin1 is all sequences under 50 bases
         bin2 = [] #bin2 is reads between 50 and 100 bases
