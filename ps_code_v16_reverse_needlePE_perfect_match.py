@@ -493,7 +493,7 @@ def insertion_chunks(final_seqs):
                 reads_at_end += 1
                 insertions.append(end_pos)
                 break
-          elif abs((bar.span()[1]-bar.span()[0])+1) == (len(final_seqs[i].seq.strip('-'))-total_len): ##perfect match
+          elif abs((bar.span()[1]-bar.span()[0])+1) == (len(final_seqs[i].seq.strip('-'))-total_len): ##perfect match, need to add one since bar.span() yields indices
                 insert_site = len(final_seqs[i].seq)-bar.span()[0]
                 insertions.append(insert_site) #length of the entire alignment minus the length spanned before the first base
                 chunk_dict.update({insert_site:seq_chunks})
@@ -501,16 +501,12 @@ def insertion_chunks(final_seqs):
                 break
           
           else: #Otherwise discard the read
-                other_scenario +=1
+                discarded_reads +=1
                 break
     
     print (str(reads_at_end)+ ' reads reached the end without a suitable insertion')    
     print (str(discarded_reads)+' reads were discarded :(')
-    print(str(large_chunk_reads)+' reads had too large of a chunk')
-    print(str(max_chunks_exceeded)+' reads had too many chunks')
-    print(str(upstream_dashes)+' reads had upstream dashes')
     print(str(perfect_matches)+' reads are perfect matches')
-    print(str(other_scenario) +' reads did not satisfy any of the criteria')
         
     return chunk_dict, insertions
     
