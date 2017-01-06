@@ -346,6 +346,8 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
     read_len_list = [] #list of read lengths regardless of whether or not they pass the alignment score filter
     co_ct = 0 #number of sequences with coordinate matches
     aln_ct = 0 #number of sequences with paired end sequence matches
+    f_list = []
+    pe_list = []
     #get coordinate list in the paired end reads
     count_list = []
     pe_coordL = [get_coords(s) for s in pe_seqs]
@@ -381,8 +383,8 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
             #initialize cutoff scores
             lo_cutoff = 0
             hi_cutoff = 1500
-            f_read_len = len(str(aln_data[0][0].seq).lstrip('-').strip('-'))
-            pe_read_len = len(str(aln_data[0][1].seq).lstrip('-').strip('-'))
+            f_list.append(len(str(aln_data[0][0].seq).lstrip('-').strip('-')))
+            pe_list.append(len(str(aln_data[0][1].seq).lstrip('-').strip('-')))
             if len(str(aln_data[0][1].seq).lstrip('-').strip('-')) < 50 :
                 lo_cutoff = bin_scores[0][0]
                 hi_cutoff = bin_scores[0][1]
@@ -420,9 +422,9 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                     pe_append = pe_read[match_coord:list(copied_func.finditer(str(pe_read.seq)))[-1].start()] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                     s.seq = s.seq[0:(len(s.seq)-len(pe_append))]+pe_append
                     matched_seq_list.append(s)
-            read_len_list = [f_read_len,pe_read_len]
             print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
             si = si + 1
+    read_len_list = [f_list,pe_list]
     print ("")
     
     count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches
