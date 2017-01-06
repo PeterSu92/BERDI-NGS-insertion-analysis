@@ -96,15 +96,12 @@ def insertion_chunks(final_seqs):
     insertions = []
     chunk_size = 3
     max_chunks = 2
-    read_at_ends = 0
-# if reaction_number in reverse_search:
-#     end_pos_default = -1
-#     final_pos = 0
-# elif reaction_number in forward_search:
-#     end_pos_default = 0
-#     final_pos = -1
-# else:
-#     print('Error your numbering is terrible')
+    reads_at_end = 0
+    large_chunk_reads = 0
+    end_dashes = 0
+    perfect_matches = 0
+    max_chunks_exceeded = 0
+    other_scenario = 0
     discarded_reads = 0
 
     for i in range(len(final_seqs)):
@@ -115,28 +112,28 @@ def insertion_chunks(final_seqs):
            insert_site = 0
            
            total_len = 0
-           print('Current sequence: ' +str(i+1)) #keep this only for test sequences
+           #print('Current sequence: ' +str(i+1)) #keep this only for test sequences
            if str(final_seqs[i].seq)[-1] == '-':
               discarded_reads += 1
-              print('Sequence '+str(i+1)+ ' had dashes at the 3prime end')
+              end_dashes +=1
               continue
            while total_len < len(final_seqs[i].seq):
               bar=re.search('[AGCT]+',str(final_seqs[i].seq)[end_pos:-1:1]) #forward search: from start to finish
               if str(type(bar)) == "<type 'NoneType'>":
-                   #If this happens, we'll know the last base of the previous
-                   # chunk was the insertion site, so we set it as such here.                
-                print('Sequence '+str(i+1)+'end reached')
-                    #insert_site = end_pos
-                if end_pos >= 300: #this prevents a nonphysical insertion from happening
+                   #If this happens, we'll know the end was reached without finding a suitable insertion
+                    reads_at_end += 1
+                    break
+
+              if end_pos >= 300: #this prevents a nonphysical insertion from happening
                     end_pos = end_pos-4
                     insertions.append(insert_site)
-                break
+                    break
               elif abs((bar.span()[1]-bar.span()[0])+1) == (len(final_seqs[i].seq.lstrip('-').strip('-'))): #perfect match occurs
                      insert_site = bar.span()[0] #forward search stops at the first base of the DNA chunk
                      insertions.append(insert_site)
                      chunk_dict.update({insert_site:seq_chunks})
                      seq_chunks.append(bar.span()[1]-bar.span()[0])
-                     print('Sequence '+str(i+1)+' had a perfect match')
+                     perfect_matches +=1
                      break
               elif abs((bar.span()[1]-bar.span()[0])) <= chunk_size: #if a chunk is small enough, set index correspondingly but keep searching through the alignment
                      num_chunks += 1
@@ -148,56 +145,27 @@ def insertion_chunks(final_seqs):
                      continue
               elif (abs((bar.span()[1]-bar.span()[0])) > chunk_size) and (abs((bar.span()[1]-bar.span()[0])) != len(final_seqs[i].seq.lstrip('-'))-total_len): #if chunk too large, get rid of the alignment
                      discarded_reads += 1
-                     print('Sequence '+str(i+1)+' had too large of a chunk')
+                     large_chunk_reads +=1
                      break
               elif len(final_seqs[i].seq.strip('-')) != len(final_seqs[i].seq.lstrip('-')): #gets rid of alignments with gaps at the 3' end
                      discarded_reads +=1
                      break
               elif num_chunks > max_chunks: #too many chunks leads to an alignment being thrown out. 
                      discarded_reads += 1
+                     max_chunks_exceeded +=1
                      break
-                    # elif abs((bar.span()[1]-bar.span()[0])) <=8: #if the contiguous chunk of DNA is too small, move on but save the indexing and the length searched so that the
-                        # insert site isn't miscaculated, as the next iteration of the search starts the regex indexing back at 0
-                        #print('an insertion had a small chunk;'+ ' end pos: '+str(bar.span()[1]))
-                        # end_pos += bar.span()[1]
-                        # #we add the entire length of the spanned region, through the chunk of DNA spanned, to the insert site
-                        # insert_site += (bar.span()[1])
-                        # span_length = abs(bar.span()[1]-bar.span()[0])
-                        # seq_chunks.append(span_length)
-                        # total_len += bar.span()[1]
-                        # num_chunks +=1
-                        # continue
-                    # elif ((bar.span()[1]-bar.span()[0]) >=8) and (bar.span()[0] == 0): #this shouldn't ever really happen for most PCRs in this category. 
-                    #     insert_site += bar.span()[0]
-                    #     print('Insertion at start of template') #printing this will tell us if this happens
-                    #     num_chunks += 1
-                    #     insertions[i] = insert_site
-                    #     span_length = abs(bar.span()[1]-bar.span()[0])
-                    #     seq_chunks.append(span_length)
-                    #     total_len += span_length
-                    #     break
          
-              else: #This should not happen now, but if it does, it sets the insert site as the FIRST base of the contiguous region, which is why bar.span()[0] is used
-                    #insert_site = bar.span()[0]
-                    print('Sequence '+str(i+1)+ 'had an insertion weirdly')
-                    if bar.span()[0] >= 300:
-                       insert_site = bar.span()[0]-4
-                       insertions.append(insert_site)
-                       chunk_dict.update({insert_site:seq_chunks})
-                    else:
-                       insert_site = bar.span()[0]
-                       insertions.append(insert_site)
-                       chunk_dict.update({insert_site:seq_chunks})
-
+              else: #This should not happen now, but if it does, will document it
+                    other_scenario +=1
                     break
-                #if insert_site != 0:
-            
-    # insertions.append(insert_site)
-            
 
-    
-    
-    return chunk_dict, insertions
+    print (str(reads_at_end)+ ' reads reached the end without a suitable insertion')    
+    print (str(discarded_reads)+' reads were discarded :(')
+    print(str(large_chunk_reads)+' reads had too large of a chunk')
+    print(str(max_chunks_exceeded)+' reads had too many chunks')
+    print(str(end_dashes)+' reads had end dashes')
+    print(str(perfect_matches)+' reads are perfect matches')
+    print(str(other_scenario) +' reads did not satisfy any of the criteria')
     
 def insertion_site_freq(final_seqs):
     '''
