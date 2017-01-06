@@ -392,40 +392,42 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                     #temp_seq = SeqRecord(Seq(template),id='template',name = 'template')
                     SeqIO.write(pe_seqs[p_index].reverse_complement(),PE_seq_file,'fasta')
 
-            needle_cline = NeedleCommandline(asequence='temp_temp_PE.fa', bsequence='temp_seq_PE.fa', gapopen=10,
+                needle_cline = NeedleCommandline(asequence='temp_seq_PE.fa', bsequence='temp_temp_PE.fa', gapopen=10,
                                              gapextend=0.5, outfile='PE.needle') #hopefully only one needle file gets made
-            needle_cline()
-            aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
-            bin_scores = [[42,251],[205,501],[446,751],[687,1001],[928,1251],[1100,1500]] #same bin cutoff scores as alignment
+                needle_cline()
+                aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
+                bin_scores = [[42,251],[205,501],[446,751],[687,1001],[928,1251],[1100,1500]] #same bin cutoff scores as alignment
             #initialize cutoff scores
-            lo_cutoff = 0
-            hi_cutoff = 1500
-            if len(str(aln_data[0][1].seq)) < 50 :
-                lo_cutoff = bin_scores[0][0]
-                hi_cutoff = bin_scores[0][1]
-            elif len(str(aln_data[0][1].seq)) >= 50 and len(str(aln_data[0][1].seq)) < 100:
-                lo_cutoff = bin_scores[1][0]
-                hi_cutoff = bin_scores[1][1]
-            elif len(str(aln_data[0][1].seq)) >= 100 and len(str(aln_data[0][1].seq)) < 150:
-                lo_cutoff = bin_scores[2][0]
-                hi_cutoff = bin_scores[2][1]
-            elif len(str(aln_data[0][1].seq)) >= 150 and len(str(aln_data[0][1].seq)) < 200:
-                lo_cutoff = bin_scores[3][0]
-                hi_cutoff = bin_scores[3][1]
-            elif len(str(aln_data[0][1].seq)) >= 200 and len(str(aln_data[0][1].seq)) < 250:
-                lo_cutoff = bin_scores[4][0]
-                hi_cutoff = bin_scores[4][1]
-            elif len(str(aln_data[0][1].seq)) >= 250 and len(str(aln_data[0][1].seq)) < 300:
-                lo_cutoff = bin_scores[5][0]
-                hi_cutoff = bin_scores[5][1]
+                lo_cutoff = 0
+                hi_cutoff = 1500
+                if len(str(aln_data[0][1].seq)) < 50 :
+                    lo_cutoff = bin_scores[0][0]
+                    hi_cutoff = bin_scores[0][1]
+                elif len(str(aln_data[0][1].seq)) >= 50 and len(str(aln_data[0][1].seq)) < 100:
+                    lo_cutoff = bin_scores[1][0]
+                    hi_cutoff = bin_scores[1][1]
+                elif len(str(aln_data[0][1].seq)) >= 100 and len(str(aln_data[0][1].seq)) < 150:
+                    lo_cutoff = bin_scores[2][0]
+                    hi_cutoff = bin_scores[2][1]
+                elif len(str(aln_data[0][1].seq)) >= 150 and len(str(aln_data[0][1].seq)) < 200:
+                    lo_cutoff = bin_scores[3][0]
+                    hi_cutoff = bin_scores[3][1]
+                elif len(str(aln_data[0][1].seq)) >= 200 and len(str(aln_data[0][1].seq)) < 250:
+                    lo_cutoff = bin_scores[4][0]
+                    hi_cutoff = bin_scores[4][1]
+                elif len(str(aln_data[0][1].seq)) >= 250 and len(str(aln_data[0][1].seq)) < 300:
+                    lo_cutoff = bin_scores[5][0]
+                    hi_cutoff = bin_scores[5][1]
 
-            if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] < hi_cutoff):
+                if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] < hi_cutoff):
 
-                #if str(pe_seqs[p_index].reverse_complement().seq).find(str(copied.seq)):
-                    # #Now this filters on the paired end sequence match
-                aln_ct += 1
-                matched_seq_list.append(copied)
-            print (si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",)
+                    #if str(pe_seqs[p_index].reverse_complement().seq).find(str(copied.seq)):
+                        # #Now this filters on the paired end sequence match
+                    aln_ct += 1
+                    matched_seq_list.append(copied)
+            else:
+                continue
+            print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
             si = si + 1
     print ("")
     
@@ -489,44 +491,21 @@ def insertion_chunks(final_seqs):
                     end_pos = end_pos-4
                     insertions.append(insert_site)
                     break
-              elif abs((bar.span()[1]-bar.span()[0])+1) == (len(final_seqs[i].seq.lstrip('-').strip('-'))): #perfect match occurs
+              elif abs((bar.span()[1]-bar.span()[0])+1) == (len(final_seqs[i].seq.lstrip('-').strip('-'))): #perfect match occurs, need to add one since bar.span() yields indices
                      insert_site = bar.span()[0] #forward search stops at the first base of the DNA chunk
                      insertions.append(insert_site)
                      chunk_dict.update({insert_site:seq_chunks})
                      seq_chunks.append(bar.span()[1]-bar.span()[0])
                      perfect_matches +=1
                      break
-              # elif abs((bar.span()[1]-bar.span()[0])) <= chunk_size: #if a chunk is small enough, set index correspondingly but keep searching through the alignment
-              #        num_chunks += 1
-              #        end_pos += bar.span()[1]
-              #        insert_site += bar.span()[1]
-              #        span_length = abs(bar.span()[1]-bar.span()[0])
-              #        seq_chunks.append(span_length)
-              #        total_len += bar.span()[1]
-              #        continue
-              # elif (abs((bar.span()[1]-bar.span()[0])) > chunk_size) and (abs((bar.span()[1]-bar.span()[0])) != len(final_seqs[i].seq.lstrip('-'))-total_len): #if chunk too large, get rid of the alignment
-              #        discarded_reads += 1
-              #        large_chunk_reads +=1
-              #        break
-              # elif len(final_seqs[i].seq.strip('-')) != len(final_seqs[i].seq.lstrip('-')): #gets rid of alignments with gaps at the 3' end
-              #        discarded_reads +=1
-              #        break
-              # elif num_chunks > max_chunks: #too many chunks leads to an alignment being thrown out. 
-              #        discarded_reads += 1
-              #        max_chunks_exceeded +=1
-              #        break
          
-              else: #This should not happen now, but if it does, will document it
+              else: #Otherwise discard the read
                     discarded_reads +=1
                     break
 
     print (str(reads_at_end)+ ' reads reached the end without a suitable insertion')    
     print (str(discarded_reads)+' reads were discarded :(')
-    print(str(large_chunk_reads)+' reads had too large of a chunk')
-    print(str(max_chunks_exceeded)+' reads had too many chunks')
-    print(str(end_dashes)+' reads had end dashes')
     print(str(perfect_matches)+' reads are perfect matches')
-    print(str(other_scenario) +' reads did not satisfy any of the criteria')
 
 
     return chunk_dict, insertions
@@ -562,11 +541,6 @@ def insertion_site_freq(final_seqs,template,reaction_number):
 
 
 
-
-
-
-    
-    
 def figplot_scatter(ax,template,max_frequency):
     '''
     Set of simple commands to make the scatterplot figure look nice
