@@ -417,9 +417,10 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                 aln_ct += 1
                 #bar = re.search('[AGCT]+',str(aln_data[0][1].seq)[-1:0:-1])
                 if copied_func not in str(s.seq): #if the scar isn't found on the forward read 
-                    bar = re.search('[AGCT]+',str(pe_read.seq)[-1:0:-1]) #search backwards through reverse compliment of PE read, find first base that aligned.
-                    match_coord = len(pe_read.seq)-bar.span()[0] #since search is backwards, subtract index of first base from overall length. 
-                    pe_append = pe_read[match_coord:list(copied_func.finditer(str(pe_read.seq)))[-1].start()] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
+                    bar = re.search('[AGCT]+',str(pe_read.seq)[0:-1:1]) #search forwards through reverse complement of PE read, find first base that aligned.
+                    match_coord = bar.span()[0] #since search is backwards, subtract index of first base from overall length. 
+                    pe_read_rev = pe_seqs[p_index].reverse_complement().seq
+                    pe_append = str(pe_read_rev)[match_coord:copied_func.search(str(pe_read_rev).end())] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                     s.seq = s.seq[0:(len(s.seq)-len(pe_append))]+pe_append
                     matched_seq_list.append(s)
             print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
@@ -523,34 +524,10 @@ def insertion_chunks(final_seqs):
           elif num_chunks > max_chunks: #too many chunks leads to alignment being discarded
                 discarded_reads +=1
                 max_chunks_exceeded +=1
-                
                 break
-                   # if num_chunks == 0:
-                   #    end_pos = len(template)-1-bar.span()[1]
-                   # else:
-                   #    end_pos = end_pos-bar.span()[1]
-                   # insert_site = insert_site- (bar.span()[1])
-                   # span_length = abs(bar.span()[1]-bar.span()[0])
-                   # seq_chunks.append(span_length)
-                   # total_len += bar.span()[1]
-                   # num_chunks +=1
-                   # continue
-               # elif ((bar.span()[1]-bar.span()[0]) >=8) and (bar.span()[0] == 0):
-               #     insert_site += len(template)-bar.span()[0]
-               #     num_chunks += 1
-               #     insertions[i] = insert_site
-               #     span_length = abs(bar.span()[1]-bar.span()[0])
-               #     seq_chunks.append(span_length)
-               #     total_len += span_length
-               #     break
-        #           elif num_chunks >= 5:
-        #               span_length = bar.span()[1]-bar.span()[0]
-        #               seq_chunks.append(span_length)
-        #               break           
+
           else: #This should not happen now, but if it does, will document it
                 other_scenario +=1
-
-                #num_chunks +=1
                 break
     
     print (str(reads_at_end)+ ' reads reached the end without a suitable insertion')    
