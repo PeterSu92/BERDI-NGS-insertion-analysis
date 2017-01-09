@@ -404,24 +404,26 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                 lo_cutoff = bin_scores[5][0]
                 hi_cutoff = bin_scores[5][1]
 
-            for alignment in aln_data: ##### This might need to be earlier? Hard to say, since the cause of these template gaps is odd.
+            for alignment in aln_data:
                 if (alignment.annotations['score'] >= lo_cutoff) and (alignment.annotations['score'] < hi_cutoff):
                         #Template should have no gaps and should contain the whole
                         # non-template sequence
-                #if not str(alignment[0].seq).count('-') > 0:
                             joined_align = [r for r,t in zip(alignment[1],alignment[0]) if t != '-']
-                            pe_read = SeqRecord(''.join(joined_align)) #the paired-end has already been made reverse complement for the alignment
-
-                #if str(pe_seqs[p_index].reverse_complement().seq).find(str(copied.seq)):
-                    # #Now this filters on the paired end sequence match
+                            pe_read = SeqRecord(''.join(joined_align))
                 aln_ct += 1
-                #bar = re.search('[AGCT]+',str(aln_data[0][1].seq)[-1:0:-1])
-                if copied_func not in str(s.seq): #if the scar isn't found on the forward read 
-                    bar = re.search('[AGCT]+',str(pe_read.seq)[0:-1:1]) #search forwards through reverse complement of PE read, find first base that aligned.
-                    match_coord = bar.span()[0] #since search is backwards, subtract index of first base from overall length. 
-                    pe_read_rev = pe_seqs[p_index].reverse_complement().seq
-                    pe_append = str(pe_read_rev)[match_coord:copied_func.search(str(pe_read_rev).end())] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
-                    s.seq = s.seq[0:(len(s.seq)-len(pe_append))]+pe_append
+            if copied_func not in str(s.seq): #if the scar isn't found on the forward read 
+                bar = re.search('[AGCT]+',str(pe_read.seq)[0:-1:1]) #search forwards through reverse complement of PE read, find first base that aligned.
+                match_len = bar.span()[1]-bar.span()[0]
+                match_coord_start = len(pe_read)-bar.span()[0] #since search is backwards, subtract index of first base from overall length. 
+                match_coord_end = match_coord_start+match_len
+                pe_read_rev = pe_seqs[p_index].reverse_complement().seq
+                search_oligo = str(pe_read_rev)[match_coord_start:match_coord_end]
+                if len(search_oligo) < 17:
+                    continue
+                else:
+                    bar1 = re.search(search_oligo,str(s.seq))
+                    pe_append = str(pe_read_rev)[match_coord_end:copied_func.search(str(pe_read_rev).end())] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
+                    s.seq = s.seq[0:bar1.span()[1]]+pe_append
                     matched_seq_list.append(s)
             print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
             si = si + 1
