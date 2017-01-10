@@ -388,7 +388,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func):
                 #temp_f_seq = copied
                     SeqIO.write(temp_f_seq,sh,'fastq')  
                 with open('temp_temp_PE.fa','w') as PE_seq_file:
-        # make temp sequence file for alignment, hopefully re-written every time
+                    # make temp sequence file for alignment, hopefully re-written every time
                     #temp_seq = SeqRecord(Seq(template),id='template',name = 'template')
                     SeqIO.write(pe_seqs[p_index].reverse_complement(),PE_seq_file,'fasta')
 
