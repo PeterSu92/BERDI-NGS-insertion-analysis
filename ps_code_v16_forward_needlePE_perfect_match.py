@@ -400,22 +400,22 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
             #initialize cutoff scores
                 lo_cutoff = 0
                 hi_cutoff = 1500
-                if len(str(aln_data[0][1].seq)) < 50 :
+                if len(str(aln_data[0][0].seq)) < 50 :
                     lo_cutoff = bin_scores[0][0]
                     hi_cutoff = bin_scores[0][1]
-                elif len(str(aln_data[0][1].seq)) >= 50 and len(str(aln_data[0][1].seq)) < 100:
+                elif len(str(aln_data[0][0].seq)) >= 50 and len(str(aln_data[0][1].seq)) < 100:
                     lo_cutoff = bin_scores[1][0]
                     hi_cutoff = bin_scores[1][1]
-                elif len(str(aln_data[0][1].seq)) >= 100 and len(str(aln_data[0][1].seq)) < 150:
+                elif len(str(aln_data[0][0].seq)) >= 100 and len(str(aln_data[0][1].seq)) < 150:
                     lo_cutoff = bin_scores[2][0]
                     hi_cutoff = bin_scores[2][1]
-                elif len(str(aln_data[0][1].seq)) >= 150 and len(str(aln_data[0][1].seq)) < 200:
+                elif len(str(aln_data[0][0].seq)) >= 150 and len(str(aln_data[0][1].seq)) < 200:
                     lo_cutoff = bin_scores[3][0]
                     hi_cutoff = bin_scores[3][1]
-                elif len(str(aln_data[0][1].seq)) >= 200 and len(str(aln_data[0][1].seq)) < 250:
+                elif len(str(aln_data[0][0].seq)) >= 200 and len(str(aln_data[0][1].seq)) < 250:
                     lo_cutoff = bin_scores[4][0]
                     hi_cutoff = bin_scores[4][1]
-                elif len(str(aln_data[0][1].seq)) >= 250 and len(str(aln_data[0][1].seq)) < 300:
+                elif len(str(aln_data[0][0].seq)) >= 250 and len(str(aln_data[0][1].seq)) < 300:
                     lo_cutoff = bin_scores[5][0]
                     hi_cutoff = bin_scores[5][1]
 
