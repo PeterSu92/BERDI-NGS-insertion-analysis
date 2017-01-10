@@ -425,10 +425,13 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 if len(search_oligo) < 17:
                     continue
                 else:
+                    bar1 = re.search(search_oligo,str(s.seq))
+                    pe_append = str(pe_read_rev)[match_coord_end:copied_func.search(str(pe_read_rev).end())] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
+                    s.seq = s.seq[0:bar1.span()[1]]+pe_append
+                    matched_seq_list.append(s)
+            else:
                     # bar1 = re.search(search_oligo,str(s.seq))
-                    # pe_append = str(pe_read_rev)[match_coord_end:copied_func.search(str(pe_read_rev).end())] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
-                    # s.seq = s.seq[0:bar1.span()[1]]+pe_append
-                    matched_seq_list.append(copied)
+                matched_seq_list.append(copied)
             print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
             si = si + 1
 
