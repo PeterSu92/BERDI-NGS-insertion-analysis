@@ -403,19 +403,19 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func):
                 if len(str(aln_data[0][0].seq).lstrip('-').strip('-')) < 50 :
                     lo_cutoff = bin_scores[0][0]
                     hi_cutoff = bin_scores[0][1]
-                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 50 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 100:
+                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 50 and len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) < 100:
                     lo_cutoff = bin_scores[1][0]
                     hi_cutoff = bin_scores[1][1]
-                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 100 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 150:
+                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 100 and len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) < 150:
                     lo_cutoff = bin_scores[2][0]
                     hi_cutoff = bin_scores[2][1]
-                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 150 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 200:
+                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 150 and len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) < 200:
                     lo_cutoff = bin_scores[3][0]
                     hi_cutoff = bin_scores[3][1]
-                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 200 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 250:
+                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 200 and len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) < 250:
                     lo_cutoff = bin_scores[4][0]
                     hi_cutoff = bin_scores[4][1]
-                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 250 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 300:
+                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 250 and len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) < 300:
                     lo_cutoff = bin_scores[5][0]
                     hi_cutoff = bin_scores[5][1]
 
