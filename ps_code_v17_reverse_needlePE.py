@@ -168,7 +168,7 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         # Now that only sequences containing BOTH the CS and the TR have been filtered for,
         # the paired-end matching can occur
         
-        s1 = filter_pe_mismatch(f_seqs3,pe_seqs3,f_filt_seqs[2])
+        s1 = filter_pe_mismatch(f_seqs3,pe_seqs3,gen_copied_seq_function(f_res),f_filt_seqs[2])
         seqs = s1[0]
         read_len_postalign_list = s1[1]
         print(str(len(seqs))+' forward reads have a paired-end match')
@@ -422,10 +422,13 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 if len(search_oligo) < 17:
                     continue
                 else:
+                    bar1 = re.search(search_oligo,str(s.seq))
+                    pe_append = str(pe_read_rev)[match_coord_end:copied_func.search(str(pe_read_rev).end())] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
+                    s.seq = s.seq[0:bar1.span()[1]]+pe_append
+                    matched_seq_list.append(s)
+            else:
                     # bar1 = re.search(search_oligo,str(s.seq))
-                    # pe_append = str(pe_read_rev)[match_coord_end:copied_func.search(str(pe_read_rev).end())] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
-                    # s.seq = s.seq[0:bar1.span()[1]]+pe_append
-                    matched_seq_list.append(copied)
+                matched_seq_list.append(copied)
             print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
             si = si + 1
 
