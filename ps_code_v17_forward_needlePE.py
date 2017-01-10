@@ -168,7 +168,7 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         # Now that only sequences containing BOTH the CS and the TR have been filtered for,
         # the paired-end matching can occur
         
-        s1 = filter_pe_mismatch(f_seqs3,pe_seqs3,f_filt_seqs[2])
+        s1 = filter_pe_mismatch(f_seqs3,pe_seqs3,gen_copied_seq_function(f_res),f_filt_seqs[2])
         seqs = s1[0]
         read_len_postalign_list = s1[1]
         print(str(len(seqs))+' forward reads have a paired-end match')
@@ -333,7 +333,7 @@ def gen_copied_seq_function(f_res):
             return lambda s: get_copied_seq(s, f_res)
             # lambda s is just like f(s)
             
-def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needleman-Wunsch algorithm for paired-end filtering.
+def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use the Needleman-Wunsch algorithm for paired-end filtering.
     """
     
     Inputs:
@@ -366,7 +366,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                 #isn't zero, so if the paired-end coordinates were found, the block below
                 # will be run
                 co_ct += 1 
-                #copied = copied_func(s) #Get part of the sequence that was actually copied - not using as of now
+                copied = copied_func(s) #Get part of the sequence that was actually copied - not using as of now
                 # print('copied is type ',type(copied))
                 #temp_f_seq = copied
                 p_index = pe_coordL.index(get_coords(s))        
@@ -389,22 +389,22 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
             f_list.append(len(str(aln_data[0][0].seq).lstrip('-').strip('-')))
             pe_list.append(len(str(aln_data[0][1].seq).lstrip('-').strip('-')))
             
-            if len(str(aln_data[0][1].seq).lstrip('-').strip('-')) < 50 :
+            if len(str(aln_data[0][0].seq).lstrip('-').strip('-')) < 50 :
                 lo_cutoff = bin_scores[0][0]
                 hi_cutoff = bin_scores[0][1]
-            elif len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) >= 50 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 100:
+            elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 50 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 100:
                 lo_cutoff = bin_scores[1][0]
                 hi_cutoff = bin_scores[1][1]
-            elif len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) >= 100 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 150:
+            elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 100 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 150:
                 lo_cutoff = bin_scores[2][0]
                 hi_cutoff = bin_scores[2][1]
-            elif len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) >= 150 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 200:
+            elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 150 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 200:
                 lo_cutoff = bin_scores[3][0]
                 hi_cutoff = bin_scores[3][1]
-            elif len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) >= 200 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 250:
+            elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 200 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 250:
                 lo_cutoff = bin_scores[4][0]
                 hi_cutoff = bin_scores[4][1]
-            elif len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) >= 250 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 300:
+            elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 250 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 300:
                 lo_cutoff = bin_scores[5][0]
                 hi_cutoff = bin_scores[5][1]
 
@@ -415,7 +415,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                             joined_align = [r for r,t in zip(alignment[1],alignment[0]) if t != '-']
                             pe_read = SeqRecord(''.join(joined_align))
                 aln_ct += 1
-            if copied_func not in str(s.seq): #if the scar isn't found on the forward read 
+            if filt_seq not in str(s.seq): #if the scar isn't found on the forward read 
                 bar = re.search('[AGCT]+',str(pe_read.seq)[0:-1:1]) #search forwards through reverse complement of PE read, find first base that aligned.
                 match_len = bar.span()[1]-bar.span()[0]
                 match_coord_start = len(pe_read)-bar.span()[0] #since search is backwards, subtract index of first base from overall length. 
@@ -425,10 +425,10 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                 if len(search_oligo) < 17:
                     continue
                 else:
-                    bar1 = re.search(search_oligo,str(s.seq))
-                    pe_append = str(pe_read_rev)[match_coord_end:copied_func.search(str(pe_read_rev).end())] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
-                    s.seq = s.seq[0:bar1.span()[1]]+pe_append
-                    matched_seq_list.append(s)
+                    # bar1 = re.search(search_oligo,str(s.seq))
+                    # pe_append = str(pe_read_rev)[match_coord_end:copied_func.search(str(pe_read_rev).end())] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
+                    # s.seq = s.seq[0:bar1.span()[1]]+pe_append
+                    matched_seq_list.append(copied)
             print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
             si = si + 1
 
