@@ -375,60 +375,60 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     #temp_seq = SeqRecord(Seq(template),id='template',name = 'template')
                     SeqIO.write(pe_seqs[p_index].reverse_complement(),PE_seq_file,'fasta')
 
-            needle_cline = NeedleCommandline(asequence='temp_seq_PE.fa', bsequence='temp_temp_PE.fa', gapopen=10,
-                                             gapextend=0.5, outfile='PE.needle') #hopefully only one needle file gets made
-            needle_cline()
-            aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
-            bin_scores = [[42,251],[205,501],[446,751],[687,1001],[928,1251],[1100,1500]] #same bin cutoff scores as alignment
-            #initialize cutoff scores
-            lo_cutoff = 0
-            hi_cutoff = 1500
-            f_list.append(len(str(aln_data[0][0].seq).lstrip('-').strip('-')))
-            pe_list.append(len(str(aln_data[0][1].seq).lstrip('-').strip('-')))
-            
-            if len(str(aln_data[0][0].seq).lstrip('-').strip('-')) < 50 :
-                lo_cutoff = bin_scores[0][0]
-                hi_cutoff = bin_scores[0][1]
-            elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 50 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 100:
-                lo_cutoff = bin_scores[1][0]
-                hi_cutoff = bin_scores[1][1]
-            elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 100 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 150:
-                lo_cutoff = bin_scores[2][0]
-                hi_cutoff = bin_scores[2][1]
-            elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 150 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 200:
-                lo_cutoff = bin_scores[3][0]
-                hi_cutoff = bin_scores[3][1]
-            elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 200 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 250:
-                lo_cutoff = bin_scores[4][0]
-                hi_cutoff = bin_scores[4][1]
-            elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 250 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 300:
-                lo_cutoff = bin_scores[5][0]
-                hi_cutoff = bin_scores[5][1]
+                needle_cline = NeedleCommandline(asequence='temp_seq_PE.fa', bsequence='temp_temp_PE.fa', gapopen=10,
+                                                 gapextend=0.5, outfile='PE.needle') #hopefully only one needle file gets made
+                needle_cline()
+                aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
+                bin_scores = [[42,251],[205,501],[446,751],[687,1001],[928,1251],[1100,1500]] #same bin cutoff scores as alignment
+                #initialize cutoff scores
+                lo_cutoff = 0
+                hi_cutoff = 1500
+                f_list.append(len(str(aln_data[0][0].seq).lstrip('-').strip('-')))
+                pe_list.append(len(str(aln_data[0][1].seq).lstrip('-').strip('-')))
+                
+                if len(str(aln_data[0][0].seq).lstrip('-').strip('-')) < 50 :
+                    lo_cutoff = bin_scores[0][0]
+                    hi_cutoff = bin_scores[0][1]
+                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 50 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 100:
+                    lo_cutoff = bin_scores[1][0]
+                    hi_cutoff = bin_scores[1][1]
+                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 100 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 150:
+                    lo_cutoff = bin_scores[2][0]
+                    hi_cutoff = bin_scores[2][1]
+                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 150 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 200:
+                    lo_cutoff = bin_scores[3][0]
+                    hi_cutoff = bin_scores[3][1]
+                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 200 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 250:
+                    lo_cutoff = bin_scores[4][0]
+                    hi_cutoff = bin_scores[4][1]
+                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 250 and len(str(aln_data[0][1].seq.lstrip('-').strip('-'))) < 300:
+                    lo_cutoff = bin_scores[5][0]
+                    hi_cutoff = bin_scores[5][1]
 
-            for alignment in aln_data:
-                if (alignment.annotations['score'] >= lo_cutoff) and (alignment.annotations['score'] < hi_cutoff):
-                        #Template should have no gaps and should contain the whole
-                        # non-template sequence
-                            joined_align = [r for r,t in zip(alignment[1],alignment[0]) if t != '-']
-                            pe_read = SeqRecord(''.join(joined_align))
-                aln_ct += 1
-            if filt_seq not in str(s.seq): #if the scar isn't found on the forward read 
-                bar = re.search('[AGCT]+',str(pe_read.seq)[0:-1:1]) #search forwards through reverse complement of PE read, find first base that aligned.
-                match_len = bar.span()[1]-bar.span()[0]
-                match_coord_start = len(pe_read)-bar.span()[0] #since search is backwards, subtract index of first base from overall length. 
-                match_coord_end = match_coord_start+match_len
-                pe_read_rev = pe_seqs[p_index].reverse_complement().seq
-                search_oligo = str(pe_read_rev)[match_coord_start:match_coord_end]
-                if len(search_oligo) < 17:
-                    continue
+                for alignment in aln_data:
+                    if (alignment.annotations['score'] >= lo_cutoff) and (alignment.annotations['score'] < hi_cutoff):
+                            #Template should have no gaps and should contain the whole
+                            # non-template sequence
+                                joined_align = [r for r,t in zip(alignment[1],alignment[0]) if t != '-']
+                                pe_read = SeqRecord(''.join(joined_align))
+                    aln_ct += 1
+                if filt_seq not in str(s.seq): #if the scar isn't found on the forward read 
+                    bar = re.search('[AGCT]+',str(pe_read.seq)[0:-1:1]) #search forwards through reverse complement of PE read, find first base that aligned.
+                    match_len = bar.span()[1]-bar.span()[0]
+                    match_coord_start = len(pe_read)-bar.span()[0] #since search is backwards, subtract index of first base from overall length. 
+                    match_coord_end = match_coord_start+match_len
+                    pe_read_rev = pe_seqs[p_index].reverse_complement().seq
+                    search_oligo = str(pe_read_rev)[match_coord_start:match_coord_end]
+                    if len(search_oligo) < 17:
+                        continue
+                    else:
+                        bar1 = re.search(search_oligo,str(s.seq))
+                        pe_append = str(pe_read_rev)[match_coord_end:copied_func.search(str(pe_read_rev).end())] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
+                        s.seq = s.seq[0:bar1.span()[1]]+pe_append
+                        matched_seq_list.append(s)
                 else:
-                    bar1 = re.search(search_oligo,str(s.seq))
-                    pe_append = str(pe_read_rev)[match_coord_end:copied_func.search(str(pe_read_rev).end())] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
-                    s.seq = s.seq[0:bar1.span()[1]]+pe_append
-                    matched_seq_list.append(s)
-            else:
-                    # bar1 = re.search(search_oligo,str(s.seq))
-                matched_seq_list.append(copied)
+                        # bar1 = re.search(search_oligo,str(s.seq))
+                    matched_seq_list.append(copied)
             print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
             si = si + 1
 
