@@ -330,7 +330,7 @@ def gen_copied_seq_function(f_res):
             return lambda s: get_copied_seq(s, f_res)
             # lambda s is just like f(s)
             
-def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needleman-Wunsch algorithm for paired-end filtering.
+def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use the Needleman-Wunsch algorithm for paired-end filtering.
     """
     
     Inputs:
@@ -343,11 +343,11 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
     """
     #initialize variables
     matched_seq_list = []
+    f_list = []
+    pe_list = []
     read_len_list = [] #list of read lengths regardless of whether or not they pass the alignment score filter
     co_ct = 0 #number of sequences with coordinate matches
     aln_ct = 0 #number of sequences with paired end sequence matches
-    f_list = []
-    pe_list = []
     #get coordinate list in the paired end reads
     count_list = []
     pe_coordL = [get_coords(s) for s in pe_seqs]
@@ -356,14 +356,14 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
     print('begin f_seqs loop:', len(f_seqs))
 
     si = 0
-    
+
     for s in f_seqs:
             if pe_coordL.count(get_coords(s)):
                 #Apparently the above line returns a boolean so long as the count
                 #isn't zero, so if the paired-end coordinates were found, the block below
                 # will be run
                 co_ct += 1 
-                #copied = copied_func(s) #Get part of the sequence that was actually copied - not using as of now
+                copied = copied_func(s) #Get part of the sequence that was actually copied - not using as of now
                 # print('copied is type ',type(copied))
                 #temp_f_seq = copied
                 p_index = pe_coordL.index(get_coords(s))        
@@ -375,7 +375,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                     #temp_seq = SeqRecord(Seq(template),id='template',name = 'template')
                     SeqIO.write(pe_seqs[p_index].reverse_complement(),PE_seq_file,'fasta')
 
-            needle_cline = NeedleCommandline(asequence='temp_temp_PE.fa', bsequence='temp_seq_PE.fa', gapopen=10,
+            needle_cline = NeedleCommandline(asequence='temp_seq_PE.fa', bsequence='temp_temp_PE.fa', gapopen=10,
                                              gapextend=0.5, outfile='PE.needle') #hopefully only one needle file gets made
             needle_cline()
             aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
@@ -385,6 +385,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
             hi_cutoff = 1500
             f_list.append(len(str(aln_data[0][0].seq).lstrip('-').strip('-')))
             pe_list.append(len(str(aln_data[0][1].seq).lstrip('-').strip('-')))
+            
             if len(str(aln_data[0][0].seq).lstrip('-').strip('-')) < 50 :
                 lo_cutoff = bin_scores[0][0]
                 hi_cutoff = bin_scores[0][1]
@@ -411,7 +412,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                             joined_align = [r for r,t in zip(alignment[1],alignment[0]) if t != '-']
                             pe_read = SeqRecord(''.join(joined_align))
                 aln_ct += 1
-            if copied_func not in str(s.seq): #if the scar isn't found on the forward read 
+            if filt_seq not in str(s.seq): #if the scar isn't found on the forward read 
                 bar = re.search('[AGCT]+',str(pe_read.seq)[0:-1:1]) #search forwards through reverse complement of PE read, find first base that aligned.
                 match_len = bar.span()[1]-bar.span()[0]
                 match_coord_start = len(pe_read)-bar.span()[0] #since search is backwards, subtract index of first base from overall length. 
@@ -421,17 +422,17 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func): #Now edited to use the Needl
                 if len(search_oligo) < 17:
                     continue
                 else:
-                    bar1 = re.search(search_oligo,str(s.seq))
-                    pe_append = str(pe_read_rev)[match_coord_end:copied_func.search(str(pe_read_rev).end())] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
-                    s.seq = s.seq[0:bar1.span()[1]]+pe_append
-                    matched_seq_list.append(s)
+                    # bar1 = re.search(search_oligo,str(s.seq))
+                    # pe_append = str(pe_read_rev)[match_coord_end:copied_func.search(str(pe_read_rev).end())] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
+                    # s.seq = s.seq[0:bar1.span()[1]]+pe_append
+                    matched_seq_list.append(copied)
             print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
             si = si + 1
+
     read_len_list = [f_list,pe_list]
     print ("")
     
     count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches
-    #matched_seq_list = [copied_func(s) for s in f_seqs]
             
     return matched_seq_list,read_len_list
     
