@@ -428,7 +428,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         bar1 = re.search(search_oligo,str(s.seq))
                         bar2 = re.search(filt_seq,str(pe_read_rev))
 
-                        if str(type(bar2)) == "<type 'NoneType'>": #if for some reason the scar doesn't appear, go on to the next iteration
+                        if (str(type(bar2)) == "<type 'NoneType'>") or (str(type(bar1)) == "<type 'NoneType'>"): #if for some reason the scar doesn't appear, go on to the next iteration
                             continue
                         else:
                             pe_append = str(pe_read_rev)[match_coord_end:bar2.span()[0]] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
