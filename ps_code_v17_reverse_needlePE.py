@@ -199,18 +199,7 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         # Put sequences into bins based on their length        
         for s in seqs:
                 
-                if (len(str(s.seq)) >= 12) and (len(str(s.seq)) < 50): #with the primer sequences included, nothing should be below 12 bp
-                    bin1.append(s)
-                elif ((len(str(s.seq)) >= 50) and (len(str(s.seq)) < 100)):        
-                    bin2.append(s)
-                elif ((len(str(s.seq)) >= 100) and (len(str(s.seq)) < 150)):
-                    bin3.append(s)                    
-                elif ((len(str(s.seq)) >= 150) and (len(str(s.seq)) < 200)):
-                    bin4.append(s)            
-                elif ((len(str(s.seq)) >= 200) and (len(str(s.seq)) < 250)):
-                    bin5.append(s)
-                elif ((len(str(s.seq)) >= 250) and (len(str(s.seq)) < 300)):
-                    bin6.append(s)
+        
         newSeqs = []
         # Run alignment with score cutoffs based on read length    
         for i in range(len(big_bin)):
@@ -329,6 +318,46 @@ def gen_copied_seq_function(f_res):
             # instead of a list. This is for speed then?
             return lambda s: get_copied_seq(s, f_res)
             # lambda s is just like f(s)
+
+def score_cutoff_by_length(sequence,bin_scores)
+
+    """
+    Determines the size of the sequence and assigns a corresponding bin low and high cutoff score for the Needleman-Wunsch algorithm
+
+    Inputs:
+        sequence - str, the characters (DNA bases here) for which a score cutoff is determined
+        bin_scores - list of lists of integers containing the corresponding scores
+
+    Outputs:
+        cutoff_scores - list of two integers, the low and high cutoff scores
+
+    """
+    #initialize variables
+    lo_cutoff = 0
+    hi_cutoff = 0
+    # determine length and set scores
+    if len(sequence.lstrip('-').strip('-')) < 50 :
+        lo_cutoff = bin_scores[0][0]
+        hi_cutoff = bin_scores[0][1]
+    elif len(sequence.lstrip('-').strip('-')) >= 50 and len(sequence.lstrip('-').strip('-')) < 100:
+        lo_cutoff = bin_scores[1][0]
+        hi_cutoff = bin_scores[1][1]
+    elif len(sequence.lstrip('-').strip('-')) >= 100 and len(sequence.lstrip('-').strip('-')) < 150:
+        lo_cutoff = bin_scores[2][0]
+        hi_cutoff = bin_scores[2][1]
+    elif len(sequence.lstrip('-').strip('-')) >= 150 and len(sequence.lstrip('-').strip('-')) < 200:
+        lo_cutoff = bin_scores[3][0]
+        hi_cutoff = bin_scores[3][1]
+    elif len(sequence.lstrip('-').strip('-')) >= 200 and len(sequence.lstrip('-').strip('-')) < 250:
+        lo_cutoff = bin_scores[4][0]
+        hi_cutoff = bin_scores[4][1]
+    elif len(sequence.lstrip('-').strip('-')) >= 250 and len(sequence.lstrip('-').strip('-')) < 300:
+        lo_cutoff = bin_scores[5][0]
+        hi_cutoff = bin_scores[5][1]
+    else:
+        raise ValueError('Sequence is either too long or too short')
+    cutoff_scores = [lo_cutoff,hi_cutoff]
+    return cutoff_scores
             
 def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use the Needleman-Wunsch algorithm for paired-end filtering.
     """
@@ -381,29 +410,14 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
                 bin_scores = [[42,251],[205,501],[446,751],[687,1001],[928,1251],[1100,1500]] #same bin cutoff scores as alignment
                 #initialize cutoff scores
-                lo_cutoff = 0
-                hi_cutoff = 1500
+                # lo_cutoff = 0
+                # hi_cutoff = 1500
                 f_list.append(len(str(aln_data[0][0].seq).lstrip('-').strip('-')))
                 pe_list.append(len(str(aln_data[0][1].seq).lstrip('-').strip('-')))
                 
-                if len(str(aln_data[0][0].seq).lstrip('-').strip('-')) < 50 :
-                    lo_cutoff = bin_scores[0][0]
-                    hi_cutoff = bin_scores[0][1]
-                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 50 and len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) < 100:
-                    lo_cutoff = bin_scores[1][0]
-                    hi_cutoff = bin_scores[1][1]
-                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 100 and len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) < 150:
-                    lo_cutoff = bin_scores[2][0]
-                    hi_cutoff = bin_scores[2][1]
-                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 150 and len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) < 200:
-                    lo_cutoff = bin_scores[3][0]
-                    hi_cutoff = bin_scores[3][1]
-                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 200 and len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) < 250:
-                    lo_cutoff = bin_scores[4][0]
-                    hi_cutoff = bin_scores[4][1]
-                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 250 and len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) < 300:
-                    lo_cutoff = bin_scores[5][0]
-                    hi_cutoff = bin_scores[5][1]
+                scores = score_cutoff_by_length(s,bin_scores)
+                lo_cutoff = scores[0]
+                hi_cutoff = scores[1]
 
                 for alignment in aln_data:
                     if (alignment.annotations['score'] >= lo_cutoff) and (alignment.annotations['score'] < hi_cutoff):
