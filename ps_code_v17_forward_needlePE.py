@@ -158,11 +158,11 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         # ab = list(set(ab))
         # f_id_list = set(xx).intersection(xy)
         # f_dict = {s.id:s for s in new_f_list}
-        f_seqs3 = [f_seqs2[2]]
+        f_seqs3 = f_seqs2[2]
         # Repeat for paired-end reads
         # p_id_list = list(set(aa).intersection(ab))
         # pe_dict = {s.id:s for s in new_pe_list}
-        pe_seqs3 = [pe_seqs2[1]]
+        pe_seqs3 = pe_seqs2[1]
         print(str(len(f_seqs3))+' forward reads have the sequence of interest (transposon scar)')
         print(str(len(pe_seqs3))+' paired-end reads have the sequences of interest (MBP reverse primer)')
         # Now that only sequences containing BOTH the CS and the TR have been filtered for,
