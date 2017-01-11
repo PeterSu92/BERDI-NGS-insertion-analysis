@@ -363,7 +363,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 #isn't zero, so if the paired-end coordinates were found, the block below
                 # will be run
                 co_ct += 1 
-                copied = copied_func(s) #Get part of the sequence that was actually copied - not using as of now
+                 #Get part of the sequence that was actually copied 
                 # print('copied is type ',type(copied))
                 #temp_f_seq = copied
                 p_index = pe_coordL.index(get_coords(s))        
@@ -428,6 +428,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         matched_seq_list.append(s)
                 else:
                         # bar1 = re.search(search_oligo,str(s.seq))
+                    copied = copied_func(s)
                     matched_seq_list.append(copied)
             print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
             si = si + 1
