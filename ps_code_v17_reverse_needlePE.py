@@ -134,37 +134,37 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         #while the pe_seqs2 will contain the other (so indices will be messed up until I figure out which
         #read consistently has which CS). TLDR take indices in this next part with a grain of salt, and it's
         #overall kind of clunky. 
-        new_f_list = [s for s in f_seqs2[0]]
+        # new_f_list = [s for s in f_seqs2[0]]
         
-        for i in f_seqs2[2]:
-            new_f_list.append(i)
-                    #create dummy lists to help populate dictionary of reads that contain both the CS and barcode
-        xx = [s.id for s in f_seqs2[0]]
-                #In this case this is the foward primer
-        xx = list(set(xx))
-        xy = [s.id for s in f_seqs2[2]]
-                #in this case this is the transposon scar
-        xy = list(set(xy))
-        final_pe_list = []
-        new_pe_list = [s for s in pe_seqs2[0]]
-        for i in pe_seqs2[2]:
-            new_pe_list.append(i)
+        # for i in f_seqs2[2]:
+        #     new_f_list.append(i)
+        #             #create dummy lists to help populate dictionary of reads that contain both the CS and barcode
+        # xx = [s.id for s in f_seqs2[0]]
+        #         #In this case this is the foward primer
+        # xx = list(set(xx))
+        # xy = [s.id for s in f_seqs2[2]]
+        #         #in this case this is the transposon scar
+        # xy = list(set(xy))
+        # final_pe_list = []
+        # new_pe_list = [s for s in pe_seqs2[0]]
+        # for i in pe_seqs2[2]:
+        #     new_pe_list.append(i)
                 
-        aa = [s.id for s in pe_seqs2[0]]
-                #This is CS1 here
-        aa = list(set(aa))
-        ab= [s.id for s in pe_seqs2[2]]
-                #This is also the Golay barcode here
-        ab = list(set(ab))
-        f_id_list = set(xx).intersection(xy)
-        f_dict = {s.id:s for s in new_f_list}
-        f_seqs3 = [f_dict[sid] for sid in f_id_list]
+        # aa = [s.id for s in pe_seqs2[0]]
+        #         #This is CS1 here
+        # aa = list(set(aa))
+        # ab= [s.id for s in pe_seqs2[2]]
+        #         #This is also the Golay barcode here
+        # ab = list(set(ab))
+        # f_id_list = set(xx).intersection(xy)
+        # f_dict = {s.id:s for s in new_f_list}
+        f_seqs3 = [f_seqs2[0]]
         # Repeat for paired-end reads
-        p_id_list = list(set(aa).intersection(ab))
-        pe_dict = {s.id:s for s in new_pe_list}
-        pe_seqs3 = [pe_dict[sid] for sid in p_id_list]
-        print(str(len(f_seqs3))+' forward reads have the sequences of interest')
-        print(str(len(pe_seqs3))+' paired-end reads have the sequences of interest')
+        # p_id_list = list(set(aa).intersection(ab))
+        # pe_dict = {s.id:s for s in new_pe_list}
+        pe_seqs3 = [pe_seqs2[0]]
+        print(str(len(f_seqs3))+' forward reads have the sequence of interest')
+        print(str(len(pe_seqs3))+' paired-end reads have the sequence of interest')
         # Now that only sequences containing BOTH the CS and the TR have been filtered for,
         # the paired-end matching can occur
         
