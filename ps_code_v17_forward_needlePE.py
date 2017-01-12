@@ -441,7 +441,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                                 pe_read = SeqRecord(''.join(joined_align))
                                 aln_ct += 1
                     else:
-                        continue
+                        break
                 if filt_seq not in str(s.seq): #if the scar isn't found on the forward read 
                     bar = re.search('[AGCT]+',str(pe_read.seq)[0:-1:1]) #search forwards through reverse complement of PE read, find first base that aligned.
                     match_len = bar.span()[1]-bar.span()[0]
