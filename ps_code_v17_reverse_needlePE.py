@@ -199,9 +199,20 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         # Put sequences into bins based on their length        
         for s in seqs:
                 
-        
+                if (len(str(s.seq)) >= 12) and (len(str(s.seq)) < 50): #with the primer sequences included, nothing should be below 12 bp
+                    bin1.append(s)
+                elif ((len(str(s.seq)) >= 50) and (len(str(s.seq)) < 100)):        
+                    bin2.append(s)
+                elif ((len(str(s.seq)) >= 100) and (len(str(s.seq)) < 150)):
+                    bin3.append(s)                    
+                elif ((len(str(s.seq)) >= 150) and (len(str(s.seq)) < 200)):
+                    bin4.append(s)            
+                elif ((len(str(s.seq)) >= 200) and (len(str(s.seq)) < 250)):
+                    bin5.append(s)
+                elif ((len(str(s.seq)) >= 250) and (len(str(s.seq)) < 300)):
+                    bin6.append(s)
         newSeqs = []
-        # Run alignment with score cutoffs based on read length    
+        # Run alignment with score cutoffs based on read length       
         for i in range(len(big_bin)):
                 if len(big_bin[i]) == 0:
                     print ('Bin'+str(i+1)+' has no reads')
