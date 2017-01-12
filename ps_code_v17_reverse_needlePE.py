@@ -430,13 +430,14 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 lo_cutoff = scores[0]
                 hi_cutoff = scores[1]
 
-                for alignment in aln_data:
-                    if (alignment.annotations['score'] >= lo_cutoff) and (alignment.annotations['score'] < hi_cutoff):
+                if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] < hi_cutoff):
                             #Template should have no gaps and should contain the whole
                             # non-template sequence
-                                joined_align = [r for r,t in zip(alignment[1],alignment[0]) if t != '-']
-                                pe_read = SeqRecord(''.join(joined_align))
+                    joined_align = [r for r,t in zip(alignment[1],alignment[0]) if t != '-']
+                    pe_read = SeqRecord(''.join(joined_align))
                     aln_ct += 1
+                else:
+                    continue
                 if filt_seq not in str(s.seq): #if the scar isn't found on the forward read 
                     bar = re.search('[AGCT]+',str(pe_read.seq)[0:-1:1]) #search forwards through reverse complement of PE read, find first base that aligned.
                     match_len = bar.span()[1]-bar.span()[0]
