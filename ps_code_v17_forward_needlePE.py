@@ -332,7 +332,7 @@ def gen_copied_seq_function(f_res):
             # instead of a list. This is for speed then?
             return lambda s: get_copied_seq(s, f_res)
             # lambda s is just like f(s)
-def score_cutoff_by_length(sequence,bin_scores)
+def score_cutoff_by_length(sequence,bin_scores):
 
     """
     Determines the size of the sequence and assigns a corresponding bin low and high cutoff score for the Needleman-Wunsch algorithm
