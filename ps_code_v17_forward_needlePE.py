@@ -364,7 +364,7 @@ def score_cutoff_by_length(sequence,bin_scores):
     elif len(sequence.lstrip('-').strip('-')) >= 200 and len(sequence.lstrip('-').strip('-')) < 250:
         lo_cutoff = bin_scores[4][0]
         hi_cutoff = bin_scores[4][1]
-    elif len(sequence.lstrip('-').strip('-')) >= 250 and len(sequence.lstrip('-').strip('-')) < 301:
+    elif len(sequence.lstrip('-').strip('-')) >= 250 and len(sequence.lstrip('-').strip('-')) <= 301:
         lo_cutoff = bin_scores[5][0]
         hi_cutoff = bin_scores[5][1]
     else:
@@ -440,6 +440,8 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                                 joined_align = [r for r,t in zip(alignment[1],alignment[0]) if t != '-']
                                 pe_read = SeqRecord(''.join(joined_align))
                     aln_ct += 1
+                    else:
+                        continue
                 if filt_seq not in str(s.seq): #if the scar isn't found on the forward read 
                     bar = re.search('[AGCT]+',str(pe_read.seq)[0:-1:1]) #search forwards through reverse complement of PE read, find first base that aligned.
                     match_len = bar.span()[1]-bar.span()[0]
