@@ -438,7 +438,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                             # non-template sequence
                                 joined_align = [r for r,t in zip(alignment[1],alignment[0]) if t != '-']
                                 pe_read = SeqRecord(''.join(joined_align))
-                    aln_ct += 1
+                                aln_ct += 1
                     else:
                         continue
                 if filt_seq not in str(s.seq): #if the scar isn't found on the forward read 
