@@ -162,7 +162,7 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         # Repeat for paired-end reads
         # p_id_list = list(set(aa).intersection(ab))
         # pe_dict = {s.id:s for s in new_pe_list}
-        pe_seqs3 = pe_seqs2[2]
+        pe_seqs3 = pe_seqs2[0]
         print(str(len(f_seqs3))+' forward reads have the sequence of interest (MBP forward primer)')
         print(str(len(pe_seqs3))+' paired-end reads have the sequence of interest (transposon scar)')
         # Now that only sequences containing BOTH the CS and the TR have been filtered for,
@@ -212,7 +212,7 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
                 elif ((len(str(s.seq)) >= 250) and (len(str(s.seq)) < 300)):
                     bin6.append(s)
         newSeqs = []
-        # Run alignment with score cutoffs based on read length       
+        # Run alignment with score cutoffs based on read length    
         for i in range(len(big_bin)):
                 if len(big_bin[i]) == 0:
                     print ('Bin'+str(i+1)+' has no reads')
@@ -329,47 +329,6 @@ def gen_copied_seq_function(f_res):
             # instead of a list. This is for speed then?
             return lambda s: get_copied_seq(s, f_res)
             # lambda s is just like f(s)
-
-def score_cutoff_by_length(sequence,bin_scores):
-
-    """
-    Determines the size of the sequence and assigns a corresponding bin low and high cutoff score for the Needleman-Wunsch algorithm
-
-    Inputs:
-        sequence - str, the characters (DNA bases here) for which a score cutoff is determined
-        bin_scores - list of lists of integers containing the corresponding scores
-
-    Outputs:
-        cutoff_scores - list of two integers, the low and high cutoff scores
-
-    """
-    #initialize variables
-    lo_cutoff = 0
-    hi_cutoff = 0
-    # determine length and set scores
-    if len(sequence.lstrip('-').strip('-')) < 50 :
-        lo_cutoff = bin_scores[0][0]
-        hi_cutoff = bin_scores[0][1]
-    elif len(sequence.lstrip('-').strip('-')) >= 50 and len(sequence.lstrip('-').strip('-')) < 100:
-        lo_cutoff = bin_scores[1][0]
-        hi_cutoff = bin_scores[1][1]
-    elif len(sequence.lstrip('-').strip('-')) >= 100 and len(sequence.lstrip('-').strip('-')) < 150:
-        lo_cutoff = bin_scores[2][0]
-        hi_cutoff = bin_scores[2][1]
-    elif len(sequence.lstrip('-').strip('-')) >= 150 and len(sequence.lstrip('-').strip('-')) < 200:
-        lo_cutoff = bin_scores[3][0]
-        hi_cutoff = bin_scores[3][1]
-    elif len(sequence.lstrip('-').strip('-')) >= 200 and len(sequence.lstrip('-').strip('-')) < 250:
-        lo_cutoff = bin_scores[4][0]
-        hi_cutoff = bin_scores[4][1]
-    elif len(sequence.lstrip('-').strip('-')) >= 250 and len(sequence.lstrip('-').strip('-')) <= 301:
-        lo_cutoff = bin_scores[5][0]
-        hi_cutoff = bin_scores[5][1]
-    else:
-        print(str(len(sequence.lstrip('-').strip('-')))+' is the length of the problematic read')
-        raise ValueError('Sequence is either too long')
-    cutoff_scores = [lo_cutoff,hi_cutoff]
-    return cutoff_scores
             
 def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use the Needleman-Wunsch algorithm for paired-end filtering.
     """
@@ -393,7 +352,6 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     count_list = []
     pe_coordL = [get_coords(s) for s in pe_seqs]
     pe_dict = {p.description:p for p in pe_seqs}
-    appended_seqs = 0
     #pe_coord_dict = {pe_coordL[s]:pe_dict}
     print('begin f_seqs loop:', len(f_seqs))
 
@@ -423,14 +381,29 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
                 bin_scores = [[42,251],[205,501],[446,751],[687,1001],[928,1251],[1100,1500]] #same bin cutoff scores as alignment
                 #initialize cutoff scores
-                # lo_cutoff = 0
-                # hi_cutoff = 1500
+                lo_cutoff = 0
+                hi_cutoff = 1500
                 f_list.append(len(str(aln_data[0][0].seq).lstrip('-').strip('-')))
                 pe_list.append(len(str(aln_data[0][1].seq).lstrip('-').strip('-')))
                 
-                scores = score_cutoff_by_length(str(s.seq),bin_scores)
-                lo_cutoff = scores[0]
-                hi_cutoff = scores[1]
+                if len(str(aln_data[0][0].seq).lstrip('-').strip('-')) < 50 :
+                    lo_cutoff = bin_scores[0][0]
+                    hi_cutoff = bin_scores[0][1]
+                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 50 and len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) < 100:
+                    lo_cutoff = bin_scores[1][0]
+                    hi_cutoff = bin_scores[1][1]
+                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 100 and len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) < 150:
+                    lo_cutoff = bin_scores[2][0]
+                    hi_cutoff = bin_scores[2][1]
+                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 150 and len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) < 200:
+                    lo_cutoff = bin_scores[3][0]
+                    hi_cutoff = bin_scores[3][1]
+                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 200 and len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) < 250:
+                    lo_cutoff = bin_scores[4][0]
+                    hi_cutoff = bin_scores[4][1]
+                elif len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) >= 250 and len(str(aln_data[0][0].seq.lstrip('-').strip('-'))) < 300:
+                    lo_cutoff = bin_scores[5][0]
+                    hi_cutoff = bin_scores[5][1]
 
                 for alignment in aln_data:
                     if (alignment.annotations['score'] >= lo_cutoff) and (alignment.annotations['score'] < hi_cutoff):
@@ -438,29 +411,28 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                             # non-template sequence
                                 joined_align = [r for r,t in zip(alignment[1],alignment[0]) if t != '-']
                                 pe_read = SeqRecord(''.join(joined_align))
-                                aln_ct += 1
-                    else:
-                        break
+                    aln_ct += 1
                 if filt_seq not in str(s.seq): #if the scar isn't found on the forward read 
                     bar = re.search('[AGCT]+',str(pe_read.seq)[0:-1:1]) #search forwards through reverse complement of PE read, find first base that aligned.
                     match_len = bar.span()[1]-bar.span()[0]
                     match_coord_start = len(pe_read)-bar.span()[0] #since search is backwards, subtract index of first base from overall length. 
                     match_coord_end = match_coord_start+match_len
-                    pe_read_rev = pe_seqs[p_index].reverse_complement().seq
+                    pe_read_rev = pe_seqs[p_index].reverse_complement()
                     search_oligo = str(pe_read_rev)[match_coord_start:match_coord_end]
                     if len(search_oligo) < 17:
                         continue
                     else:
                         bar1 = re.search(search_oligo,str(s.seq))
-                        bar2 = re.search(filt_seq,str(pe_read_rev))
-
-                        if (str(type(bar2)) == "<type 'NoneType'>") or (str(type(bar1)) == "<type 'NoneType'>"): #if for some reason the scar doesn't appear, go on to the next iteration
-                            continue
-                        else:
+   
+                        bar3  = re.search(Seq(search_oligo).reverse_complement(),str(pe_seqs[p_index]))
+                        bar4 = re.search(Seq(filt_seq).reverse_complement(),pe_seqs[p_index])
+                        if quality_filter(pe_seqs[p_index][bar3.span()[1]]:bar4.span()[1]): #if the quality of bases between the end of the aligned region and the start of the scar is good
+                            bar2 = re.search(filt_seq,str(pe_read_rev))
                             pe_append = str(pe_read_rev)[match_coord_end:bar2.span()[0]] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                             s.seq = s.seq[0:bar1.span()[1]]+pe_append
                             matched_seq_list.append(s)
-                            appended_seqs += 1
+                        else:
+                            continue
                 else:
                         # bar1 = re.search(search_oligo,str(s.seq))
                     copied = copied_func(s)
@@ -470,7 +442,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
 
     read_len_list = [f_list,pe_list]
     print ("")
-    print (str(appended_seqs)+ 'reads got part of the paired-end read appended to them')
+    
     count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches
             
     return matched_seq_list,read_len_list
@@ -528,7 +500,7 @@ def insertion_chunks(final_seqs):
           continue
        while total_len < len(final_seqs[i].seq):
           bar=re.search('[AGCT]+',str(final_seqs[i].seq)[end_pos:0:-1])
-          if str(type(bar)) == "<type 'NoneType'>":
+          if str(type(bar)) == "<class 'NoneType'>":
            #If this happens, we'll know the last base of the previous
            # chunk was the insertion site, so we set it as such here.                
            #if end_pos != 0: 
@@ -715,13 +687,13 @@ def main(argv):
 
     print(str(coverage)+"% coverage","total insertions"+str(len(list(insert_dict1.keys()))))
 
-    # fig1 = plt.figure(figsize = (30,20))
-    # ax = fig1.add_subplot(1,1,1)
-    # ax.scatter(real_insertions,list(insert_dict1.values()))
-    # max_frequency = max(list(insert_dict1.values()))
-    # figplot_scatter(ax,template,max_frequency)
-    # # Append filename below as desired. 
-    # fig1.savefig(output_file_prefix+'_figure.pdf')
+    fig1 = plt.figure(figsize = (30,20))
+    ax = fig1.add_subplot(1,1,1)
+    ax.scatter(real_insertions,list(insert_dict1.values()))
+    max_frequency = max(list(insert_dict1.values()))
+    figplot_scatter(ax,template,max_frequency)
+    # Append filename below as desired. 
+    fig1.savefig(output_file_prefix+'_figure.pdf')
     # should result in rxn1_828_829_F_figure.pdf as output
 
     # This code below is commented out because of the file name. Change as desired
