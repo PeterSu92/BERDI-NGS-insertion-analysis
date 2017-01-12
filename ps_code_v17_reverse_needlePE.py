@@ -525,7 +525,7 @@ def insertion_chunks(final_seqs):
           continue
        while total_len < len(final_seqs[i].seq):
           bar=re.search('[AGCT]+',str(final_seqs[i].seq)[end_pos:0:-1])
-          if str(type(bar)) == "<class 'NoneType'>":
+          if str(type(bar)) == "<type 'NoneType'>":
            #If this happens, we'll know the last base of the previous
            # chunk was the insertion site, so we set it as such here.                
            #if end_pos != 0: 
