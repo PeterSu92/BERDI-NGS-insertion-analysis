@@ -381,6 +381,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     count_list = []
     pe_coordL = [get_coords(s) for s in pe_seqs]
     pe_dict = {p.description:p for p in pe_seqs}
+    appended_seqs = 0
     #pe_coord_dict = {pe_coordL[s]:pe_dict}
     print('begin f_seqs loop:', len(f_seqs))
 
@@ -445,6 +446,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                             pe_append = str(pe_read_rev)[match_coord_end:bar2.span()[0]] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                             s.seq = s.seq[0:bar1.span()[1]]+pe_append
                             matched_seq_list.append(s)
+                            appended_seqs += 1
                 else:
                         # bar1 = re.search(search_oligo,str(s.seq))
                     copied = copied_func(s)
@@ -454,7 +456,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
 
     read_len_list = [f_list,pe_list]
     print ("")
-    
+    print (str(appended_seqs)+ 'reads got part of the paired-end read appended to them')
     count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches
             
     return matched_seq_list,read_len_list

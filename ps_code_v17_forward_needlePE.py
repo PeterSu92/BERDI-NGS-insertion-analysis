@@ -371,7 +371,7 @@ def score_cutoff_by_length(sequence,bin_scores)
         raise ValueError('Sequence is either too long or too short')
     cutoff_scores = [lo_cutoff,hi_cutoff]
     return cutoff_scores
-    
+
 def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use the Needleman-Wunsch algorithm for paired-end filtering.
     """
     
@@ -394,6 +394,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     count_list = []
     pe_coordL = [get_coords(s) for s in pe_seqs]
     pe_dict = {p.description:p for p in pe_seqs}
+    appended_seqs = 0
     #pe_coord_dict = {pe_coordL[s]:pe_dict}
     print('begin f_seqs loop:', len(f_seqs))
 
@@ -458,6 +459,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                             pe_append = str(pe_read_rev)[match_coord_end:bar2.span()[0]] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                             s.seq = s.seq[0:bar1.span()[1]]+pe_append
                             matched_seq_list.append(s)
+                            appended_seqs += 1
             print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
             si = si + 1
 
