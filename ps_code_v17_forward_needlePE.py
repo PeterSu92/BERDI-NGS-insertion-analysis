@@ -429,7 +429,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 f_list.append(len(str(aln_data[0][0].seq).lstrip('-').strip('-')))
                 pe_list.append(len(str(aln_data[0][1].seq).lstrip('-').strip('-')))
                 
-                scores = score_cutoff_by_length(s,bin_scores)
+                scores = score_cutoff_by_length(str(s.seq),bin_scores)
                 lo_cutoff = scores[0]
                 hi_cutoff = scores[1]
 

@@ -427,7 +427,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 f_list.append(len(str(aln_data[0][0].seq).lstrip('-').strip('-')))
                 pe_list.append(len(str(aln_data[0][1].seq).lstrip('-').strip('-')))
                 
-                scores = score_cutoff_by_length(s,bin_scores)
+                scores = score_cutoff_by_length(str(s.seq),bin_scores)
                 lo_cutoff = scores[0]
                 hi_cutoff = scores[1]
 
@@ -712,13 +712,13 @@ def main(argv):
 
     print(str(coverage)+"% coverage","total insertions"+str(len(list(insert_dict1.keys()))))
 
-    fig1 = plt.figure(figsize = (30,20))
-    ax = fig1.add_subplot(1,1,1)
-    ax.scatter(real_insertions,list(insert_dict1.values()))
-    max_frequency = max(list(insert_dict1.values()))
-    figplot_scatter(ax,template,max_frequency)
-    # Append filename below as desired. 
-    fig1.savefig(output_file_prefix+'_figure.pdf')
+    # fig1 = plt.figure(figsize = (30,20))
+    # ax = fig1.add_subplot(1,1,1)
+    # ax.scatter(real_insertions,list(insert_dict1.values()))
+    # max_frequency = max(list(insert_dict1.values()))
+    # figplot_scatter(ax,template,max_frequency)
+    # # Append filename below as desired. 
+    # fig1.savefig(output_file_prefix+'_figure.pdf')
     # should result in rxn1_828_829_F_figure.pdf as output
 
     # This code below is commented out because of the file name. Change as desired
