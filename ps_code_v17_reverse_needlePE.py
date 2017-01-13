@@ -452,7 +452,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
    
                         bar3  = re.search(Seq(search_oligo).reverse_complement(),str(pe_seqs[p_index]))
                         bar4 = re.search(Seq(filt_seq).reverse_complement(),pe_seqs[p_index])
-                        f = quality_filter(pe_seqs[p_index][bar3.span()[1]]:bar4.span()[1])
+                        f = quality_filter(pe_seqs[p_index][bar3.span()[1]:bar4.span()[1]])
                         if len(f) > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good
                             bar2 = re.search(filt_seq,str(pe_read_rev))
                             pe_append = str(pe_read_rev)[match_coord_end:bar2.span()[0]] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
