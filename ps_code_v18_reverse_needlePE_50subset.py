@@ -423,8 +423,8 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         continue
                     else:
                         bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
-                        bar3  = re.search(Seq(search_oligo).reverse_complement(),str(pe_seqs[p_index])) #find the aligned region's reverse complement in the actual PE sequence
-                        bar4 = re.search(Seq(filt_seq).reverse_complement(),pe_seqs[p_index]) # find the filt sequence's reverse complement (in this case the scar) in the actual PE sequence
+                        bar3  = re.search(str(Seq(search_oligo).reverse_complement()),str(pe_seqs[p_index])) #find the aligned region's reverse complement in the actual PE sequence
+                        bar4 = re.search(str(Seq(filt_seq).reverse_complement()),str(pe_seqs[p_index]) # find the filt sequence's reverse complement (in this case the scar) in the actual PE sequence
                         f = quality_filter(pe_seqs[p_index][bar3.span()[1]:bar4.span()[1]])
                         if len(f) > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good
                             bar2 = re.search(filt_seq,str(pe_read_rev)) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
