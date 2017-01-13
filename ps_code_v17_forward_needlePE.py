@@ -452,15 +452,21 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         continue
                     else:
                         bar1 = re.search(search_oligo,str(s.seq))
-                        bar2 = re.search(filt_seq,str(pe_read_rev))
-
-                        if (str(type(bar2)) == "<type 'NoneType'>") or (str(type(bar1)) == "<type 'NoneType'>"): #if for some reason the scar doesn't appear, go on to the next iteration
-                            continue
-                        else:
+   
+                        bar3  = re.search(Seq(search_oligo).reverse_complement(),str(pe_seqs[p_index]))
+                        bar4 = re.search(Seq(filt_seq).reverse_complement(),pe_seqs[p_index])
+                        f = quality_filter(pe_seqs[p_index][bar3.span()[1]]:bar4.span()[1])
+                        if len(f) > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good
+                            bar2 = re.search(filt_seq,str(pe_read_rev))
                             pe_append = str(pe_read_rev)[match_coord_end:bar2.span()[0]] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                             s.seq = s.seq[0:bar1.span()[1]]+pe_append
                             matched_seq_list.append(s)
-                            appended_seqs += 1
+                        else:
+                            continue
+                else:
+                        # bar1 = re.search(search_oligo,str(s.seq))
+                    copied = copied_func(s)
+                    matched_seq_list.append(copied)
             print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
             si = si + 1
 
