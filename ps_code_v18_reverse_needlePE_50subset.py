@@ -155,7 +155,6 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         print(str(len(seqs))+' forward reads have a paired-end match')
         
         with open('read_lengths_PE.csv','w') as file:
-        # should result in rxn1_828_829_F_results.csv as output
             writer = csv.writer(file)
             writer.writerow(["fwd reads","pe reads"])
             writer.writerows(zip(s1[1][0],s1[1][1]))
@@ -375,6 +374,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     f_list = []
     pe_list = []
     missing_filt_seq = 0 #number of forward reads missing the back filter sequence
+    too_small_chunk = 0 #number of forward reads that had too small of a chunk to be kept
     read_len_list = [] #list of read lengths regardless of whether or not they pass the alignment score filter
     co_ct = 0 #number of sequences with coordinate matches
     aln_ct = 0 #number of sequences with paired end sequence matches
@@ -438,6 +438,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     search_oligo = str(pe_read_rev)[match_coord_start:match_coord_end]
                     missing_filt_seq +=1
                     if match_len < 12:
+                        too_small_chunk += 1
                         continue
                     else:
                         bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
@@ -464,6 +465,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     
     count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches
     print(str(missing_filt_seq)+' reads were missing the scar')
+    print(str(too_small_chunk)+ ' reads had too small of an aligned region')
     print(str(append_ct)+ ' reads had appended parts from the paired-end read')
     return matched_seq_list,read_len_list
     
