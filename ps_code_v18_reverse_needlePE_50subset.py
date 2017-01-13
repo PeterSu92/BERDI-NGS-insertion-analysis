@@ -225,6 +225,22 @@ def quality_filter(seqs,q_cutoff=20):
             out_l = [s for s in seqs
                     if not any(s.letter_annotations['phred_quality'] < np.ones(len(s.letter_annotations['phred_quality']))*q_cutoff)]
             return out_l
+
+def quality_filter_single(seqs,q_cutoff=20):
+            """
+            removes sequences that have any bases below the cutoff score specified
+            
+            inputs:
+                seqs
+                q_cutoff - int, score below which a sequence will be removed
+                
+            outputs:
+                out_l = list of sequences that survived the filtering
+            """
+            out_l = 0
+            if not any(s.letter_annotations['phred_quality'] < np.ones(len(s.letter_annotations['phred_quality']))*q_cutoff):
+                out_l += 1
+            return out_l
             
     # This function throws out any aligned reads below a certain cutoff score
 def cull_alignments(aln_data, lo_cutoff, hi_cutoff):
@@ -425,8 +441,8 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
                         bar3  = re.search(str(Seq(search_oligo).reverse_complement()),str(pe_seqs[p_index])) #find the aligned region's reverse complement in the actual PE sequence
                         bar4 = re.search(str(Seq(filt_seq).reverse_complement()),str(pe_seqs[p_index])) # find the filt sequence's reverse complement (in this case the scar) in the actual PE sequence
-                        f = quality_filter(pe_seqs[p_index][bar3.span()[1]:bar4.span()[1]],q_cutoff=20)
-                        if len(f) > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good
+                        f = quality_filter_single(pe_seqs[p_index][bar3.span()[1]:bar4.span()[1]],q_cutoff=20)
+                        if f> 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
                             bar2 = re.search(filt_seq,str(pe_read_rev)) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
                             pe_append = str(pe_read_rev)[match_coord_end:bar2.span()[0]] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                             s.seq = s.seq[0:bar1.span()[1]]+pe_append #return only the part of the forward read up to the end of the aligned region then plus the paired-end read up to the scar
