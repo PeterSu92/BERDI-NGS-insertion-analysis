@@ -368,6 +368,7 @@ def score_cutoff_by_length(sequence,bin_scores):
     else:
         print(str(len(sequence.lstrip('-').strip('-')))+' is the length of the problematic read')
         raise ValueError('Sequence is either too long')
+    cutoff_scores = [lo_cutoff,hi_cutoff]
     return cutoff_scores
             
 def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use the Needleman-Wunsch algorithm for paired-end filtering.
