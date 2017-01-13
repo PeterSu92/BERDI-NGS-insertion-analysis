@@ -435,7 +435,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     match_coord_end = match_coord_start+match_len
                     pe_read_rev = pe_seqs[p_index].reverse_complement()
                     search_oligo = str(pe_read_rev)[match_coord_start:match_coord_end]
-                    if match_len < 17:
+                    if match_len < 12:
                         continue
                     else:
                         bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
