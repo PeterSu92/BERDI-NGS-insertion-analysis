@@ -238,7 +238,7 @@ def quality_filter_single(seqs,q_cutoff=20):
                 out_l = list of sequences that survived the filtering
             """
             out_l = 0
-            if not any(s.letter_annotations['phred_quality'] < np.ones(len(s.letter_annotations['phred_quality']))*q_cutoff):
+            if not any(seqs.letter_annotations['phred_quality'] < np.ones(len(seqs.letter_annotations['phred_quality']))*q_cutoff):
                 out_l += 1
             return out_l
             
