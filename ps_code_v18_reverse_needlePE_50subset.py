@@ -466,6 +466,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     print ("")
     
     count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches
+    print(str(co_ct)+' forward reads had the coordinates of the PE read nearby')
     print(str(missing_filt_seq)+' reads were missing the scar')
     print(str(too_small_chunk)+ ' reads had too small of an aligned region')
     print(str(bad_quality_reads)+ 'reads had poor quality in the region to be appended')
