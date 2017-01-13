@@ -160,7 +160,7 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
             writer.writerows(zip(s1[1][0],s1[1][1]))
             file.close()
 
-        # seqs = quality_filter(seqs,q_cutoff=20)
+        seqs = quality_filter(seqs,q_cutoff=20)
         print(str(len(seqs))+' forward reads survived the Phred score quality filter')
         # Note this returns only the forward sequences
         # Now the final step of aligning and filtering by alignment scores happens
@@ -407,7 +407,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     #temp_seq = SeqRecord(Seq(template),id='template',name = 'template')
                     SeqIO.write(pe_seqs[p_index].reverse_complement(),PE_seq_file,'fasta')
 
-                needle_cline = NeedleCommandline(asequence='temp_seq_PE.fa', bsequence='temp_temp_PE.fa', gapopen=30,
+                needle_cline = NeedleCommandline(asequence='temp_seq_PE.fa', bsequence='temp_temp_PE.fa', gapopen=10,
                                                  gapextend=0.5, outfile='PE.needle') #hopefully only one needle file gets made
                 needle_cline()
                 aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
@@ -450,7 +450,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                             bar2 = re.search(filt_seq,str(pe_read_rev)) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
                             pe_append = str(pe_read_rev)[match_coord_end:bar2.span()[0]] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                             temp_phred = s.letter_annotations.values()[0][0:bar1.span()[1]] #temporarily dump Phred quality scores into a list
-                            temp_pe_phred = pe_seqs[p_index][bar3.span()[1]:bar4.span()[1]].letter_annotations.values()[0]: #append phred quality scores of the region of interest to be appended
+                            temp_pe_phred = pe_seqs[p_index][bar3.span()[1]:bar4.span()[0]].letter_annotations.values()[0] #append phred quality scores of the region of interest to be appended
                             temp_phred = temp_phred+temp_pe_phred
                             s.letter_annotations = {} #clear the letter annotations so that the sequence can be changed
                             s.seq = s.seq[0:bar1.span()[1]]+pe_append #return only the part of the forward read up to the end of the aligned region then plus the paired-end read up to the scar
@@ -462,6 +462,9 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                             else:
                                 bad_quality_reads +=1
                                 continue
+                            matched_seq_list.append(s)
+                            append_ct += 1 
+
                         else:
                             bad_quality_reads += 1
                             continue
