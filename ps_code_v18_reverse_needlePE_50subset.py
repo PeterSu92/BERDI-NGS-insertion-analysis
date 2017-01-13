@@ -435,7 +435,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     match_len = bar.span()[1]-bar.span()[0]
                     match_coord_start = len(pe_read)-bar.span()[0] #since search is backwards, subtract index of first base from overall length. 
                     match_coord_end = match_coord_start+match_len
-                    pe_read_rev = pe_seqs[p_index].reverse_complement()
+                    pe_read_rev = str(pe_seqs[p_index].reverse_complement().seq)
                     search_oligo = str(pe_read_rev)[match_coord_start:match_coord_end]
                     missing_filt_seq +=1
                     if match_len < 12:
