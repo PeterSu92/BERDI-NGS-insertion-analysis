@@ -437,7 +437,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] < hi_cutoff):
                             #Template should have no gaps and should contain the whole
                             # non-template sequence
-                    joined_align = [r for r,t in zip(alignment[1],alignment[0]) if t != '-']
+                    joined_align = [r for r,t in zip(aln_data[0][0],alndata[0][1]) if t != '-']
                     pe_read = SeqRecord(''.join(joined_align))
                     aln_ct += 1
                 else:
