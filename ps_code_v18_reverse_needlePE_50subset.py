@@ -374,6 +374,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     matched_seq_list = []
     f_list = []
     pe_list = []
+    missing_filt_seq = 0 #number of forward reads missing the back filter sequence
     read_len_list = [] #list of read lengths regardless of whether or not they pass the alignment score filter
     co_ct = 0 #number of sequences with coordinate matches
     aln_ct = 0 #number of sequences with paired end sequence matches
@@ -435,6 +436,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     match_coord_end = match_coord_start+match_len
                     pe_read_rev = pe_seqs[p_index].reverse_complement()
                     search_oligo = str(pe_read_rev)[match_coord_start:match_coord_end]
+                    missing_filt_seq +=1
                     if match_len < 12:
                         continue
                     else:
@@ -456,11 +458,12 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     matched_seq_list.append(copied)
             print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
             si = si + 1
-
+ 
     read_len_list = [f_list,pe_list]
     print ("")
     
     count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches
+    print(str(missing_filt_seq)+' reads were missing the scar')
     print(str(append_ct)+ ' reads had appended parts from the paired-end read')
     return matched_seq_list,read_len_list
     
