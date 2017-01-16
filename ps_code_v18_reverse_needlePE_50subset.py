@@ -443,8 +443,8 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         continue
                     else:
                         bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
-                        bar3  = re.search(str(Seq(search_oligo).seq.reverse_complement()),str(pe_seqs[p_index])) #find the aligned region's reverse complement in the actual PE sequence
-                        bar4 = re.search(str(Seq(filt_seq).seq.reverse_complement()),str(pe_seqs[p_index])) # find the filt sequence's reverse complement (in this case the scar) in the actual PE 
+                        bar3  = re.search(str(Seq(search_oligo).reverse_complement()),str(pe_seqs[p_index])) #find the aligned region's reverse complement in the actual PE sequence
+                        bar4 = re.search(str(Seq(filt_seq).reverse_complement()),str(pe_seqs[p_index])) # find the filt sequence's reverse complement (in this case the scar) in the actual PE 
                         if str(type(bar3)) == "<type 'NoneType'>":
                             raise ValueError('aligned region not found in paired-end')
                         elif str(type(bar4)) == "<type 'NoneType'>":
@@ -453,6 +453,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
                             bar2 = re.search(filt_seq,str(pe_read_rev)) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
                             pe_append = pe_read_rev[match_coord_end:bar2.span()[0]] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
+                            print ("match coord end is "+str(match_coord_end)+ " bar2.span()[0] is "+ str(bar2.span()[0]))
                             temp_phred = s.letter_annotations.values()[0][0:bar1.span()[1]] #temporarily dump Phred quality scores into a list
                             temp_pe_phred = pe_seqs[p_index][bar3.span()[1]:bar4.span()[0]].letter_annotations.values()[0] #append phred quality scores of the region of interest to be appended
                             temp_phred = temp_phred+temp_pe_phred
