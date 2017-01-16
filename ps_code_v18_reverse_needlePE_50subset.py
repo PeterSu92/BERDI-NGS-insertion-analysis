@@ -433,7 +433,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 if filt_seq not in str(s.seq): #if the scar isn't found on the forward read 
                     bar = re.search('[AGCT]+',str(pe_read.seq)[0:-1:1]) #search forwards through reverse complement of PE read, find first base that aligned.
                     match_len = bar.span()[1]-bar.span()[0]
-                    match_coord_start = len(pe_read)-bar.span()[1] #since search is backwards, subtract index of last base of the chunk from overall length. 
+                    match_coord_start = len(pe_read)-bar.span()[0] #since search is backwards, subtract index of first base from overall length. 
                     match_coord_end = match_coord_start+match_len
                     pe_read_rev = str(pe_seqs[p_index].reverse_complement().seq)
                     search_oligo = str(pe_read_rev)[match_coord_start:match_coord_end]
@@ -444,9 +444,13 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     else:
                         bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
                         bar3  = re.search(str(Seq(search_oligo).seq.reverse_complement()),str(pe_seqs[p_index])) #find the aligned region's reverse complement in the actual PE sequence
-                        bar4 = re.search(str(Seq(filt_seq).seq.reverse_complement()),str(pe_seqs[p_index])) # find the filt sequence's reverse complement (in this case the scar) in the actual PE sequence
+                        bar4 = re.search(str(Seq(filt_seq).seq.reverse_complement()),str(pe_seqs[p_index])) # find the filt sequence's reverse complement (in this case the scar) in the actual PE 
+                        if str(type(bar3)) == "<type 'NoneType'>":
+                            raise ValueError('aligned region not found in paired-end')
+                        elif str(type(bar4)) == "<type 'NoneType'>":
+                            raise ValueError('Transposon scar not found in paired-end')
                         f = quality_filter_single(pe_seqs[p_index][bar3.span()[1]:bar4.span()[1]],q_cutoff=20)
-                        if f> 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
+                        if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
                             bar2 = re.search(filt_seq,str(pe_read_rev)) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
                             pe_append = pe_read_rev[match_coord_end:bar2.span()[0]] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                             temp_phred = s.letter_annotations.values()[0][0:bar1.span()[1]] #temporarily dump Phred quality scores into a list
