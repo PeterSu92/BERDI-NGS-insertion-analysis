@@ -421,6 +421,9 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 scores = score_cutoff_by_length(str(s.seq),bin_scores)
                 lo_cutoff = scores[0]
                 hi_cutoff = scores[1]
+                match_coord_start = 0
+                match_coord_end = 0 
+                match_len = 0
 
                 if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] < hi_cutoff):
                             #Template should have no gaps and should contain the whole
