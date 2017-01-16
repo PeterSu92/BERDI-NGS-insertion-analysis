@@ -433,7 +433,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 if filt_seq not in str(s.seq): #if the scar isn't found on the forward read 
                     bar = re.search('[AGCT]+',str(pe_read.seq)[0:-1:1]) #search forwards through reverse complement of PE read, find first base that aligned.
                     match_len = bar.span()[1]-bar.span()[0]
-                    match_coord_start = len(pe_read)-bar.span()[0] #since search is backwards, subtract index of first base from overall length. 
+                    match_coord_start = len(pe_read)-bar.span()[1] #since search is backwards, subtract index of last base of the chunk from overall length. 
                     match_coord_end = match_coord_start+match_len
                     pe_read_rev = str(pe_seqs[p_index].reverse_complement().seq)
                     search_oligo = str(pe_read_rev)[match_coord_start:match_coord_end]
