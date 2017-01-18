@@ -375,7 +375,8 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     pe_list = []
     missing_filt_seq = 0 #number of forward reads missing the back filter sequence
     too_small_chunk = 0 #number of forward reads that had too small of a chunk to be kept
-    bad_quality_reads = 0 #number of paired-end reads whose region inbetween alignment and scar has too low of a quality score to pass
+    bad_quality_reads_first = 0 #number of paired-end reads whose region inbetween alignment and scar has too low of a quality score to pass
+    bad_quality_reads_later = 0 #number of reads that fail the quality test after appending
     attempt_append = 0
     read_len_list = [] #list of read lengths regardless of whether or not they pass the alignment score filter
     co_ct = 0 #number of sequences with coordinate matches
@@ -438,6 +439,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 match_coord_end = 0 
                 match_len = 0
                 missing_align = 0
+                f = 0
                 if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] < hi_cutoff):
                     aln_ct += 1
                 else:
@@ -478,7 +480,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                             continue
                         elif str(type(bar4)) == "<type 'NoneType'>":
                             raise ValueError('Transposon scar not found in paired-end read')
-                        f = quality_filter_single(pe_seqs[p_index][bar3.span()[1]:bar4.span()[1]],q_cutoff=20)
+                        f = quality_filter_single(pe_seqs[p_index][bar3.span()[1]:bar4.span()[0]],q_cutoff=20)
                         if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
                             bar2 = re.search(filt_seq,pe_read_rev) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
                             if str(type(bar2)) == "<type 'NoneType'>":
@@ -499,13 +501,13 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                                 matched_seq_list.append(s)
                                 append_ct += 1 
                             else:
-                                bad_quality_reads +=1
+                                bad_quality_reads_later +=1
                                 continue
                             # matched_seq_list.append(s)
                             # append_ct += 1 
 
                         else:
-                            bad_quality_reads += 1
+                            bad_quality_reads_first += 1
                             continue
                 else:
                         # bar1 = re.search(search_oligo,str(s.seq))
