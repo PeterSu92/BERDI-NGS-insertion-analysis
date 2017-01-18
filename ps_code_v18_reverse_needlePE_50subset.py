@@ -483,14 +483,13 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                             bar2 = re.search(filt_seq,pe_read_rev) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
                             if str(type(bar2)) == "<type 'NoneType'>":
                                 raise ValueError('Transposon scar not found in paired-end read rev comp')
-                            print ("match coord end is "+str(bar5.span()[1])+ " bar2.span()[0] is "+ str(bar2.span()[0]))
+                            print ("bar5.span()[1] is "+str(bar5.span()[1])+ " bar2.span()[0] is "+ str(bar2.span()[0]))
                             pe_append = pe_read_rev[bar5.span()[1]:bar2.span()[0]] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                             attempt_append += 1
-                            
                             temp_phred = s.letter_annotations.values()[0][0:bar1.span()[1]] #temporarily dump Phred quality scores into a list
                             temp_pe_phred = pe_seqs[p_index][bar3.span()[1]:bar4.span()[0]].letter_annotations.values()[0] #append phred quality scores of the region of interest to be appended
                             temp_phred = temp_phred+temp_pe_phred
-                            print(str(len(temp_phred))+ 'Phred scores')
+                            #print(str(len(temp_phred))+ 'Phred scores')
                             s.letter_annotations = {} #clear the letter annotations so that the sequence can be changed
                             s.seq = s.seq[0:bar1.span()[1]]+pe_append #return only the part of the forward read up to the end of the aligned region then plus the paired-end read up to the scar
                             print('appended portion is '+str(len(pe_append))+ ' long')
@@ -502,8 +501,8 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                             else:
                                 bad_quality_reads +=1
                                 continue
-                            matched_seq_list.append(s)
-                            append_ct += 1 
+                            # matched_seq_list.append(s)
+                            # append_ct += 1 
 
                         else:
                             bad_quality_reads += 1
