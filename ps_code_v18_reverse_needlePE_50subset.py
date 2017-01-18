@@ -146,7 +146,7 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         # Now that only sequences containing BOTH the CS and the TR have been filtered for,
         # the paired-end matching can occur
         
-        s1 = filter_pe_mismatch(f_seqs4,pe_seqs4,gen_copied_seq_function(f_res),f_filt_seqs[2])
+        s1 = filter_pe_mismatch(f_seqs4,pe_seqs4,gen_copied_seq_function(f_res),f_filt_seqs[2]) #right now using the scar
         seqs = s1[0]
         with open('matched_seq_PE.fa','w') as sh: #create temporary seq file, hopefully re-written each time
                 #temp_f_seq = copied
@@ -390,6 +390,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     si = 0
 
     for s in f_seqs:
+
             if pe_coordL.count(get_coords(s)):
                 #Apparently the above line returns a boolean so long as the count
                 #isn't zero, so if the paired-end coordinates were found, the block below
@@ -398,25 +399,36 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                  #Get part of the sequence that was actually copied 
                 # print('copied is type ',type(copied))
                 #temp_f_seq = copied
-                p_index = pe_coordL.index(get_coords(s))        
+                f_list.append(len(s))
+
+                p_index = pe_coordL.index(get_coords(s))
+                pe_list.append(len(pe_seqs[p_index]))
+                pe_read = pe_seqs[p_index].reverse_complement()
+                if len(s) > len(pe_read):
+                    s = s[0:len(pe_read)]
+                elif len(s) < len(pe_read):
+                    pe_seqs[p_index] = pe_seqs[p_index][0:len(s)]  
+                    pe_read = pe_seqs[p_index].reverse_complement()     
+
+ 
                 with open('temp_seq_PE.fa','w') as sh: #create temporary seq file, hopefully re-written each time
                 #temp_f_seq = copied
                     SeqIO.write(s,sh,'fastq')  
                 with open('temp_temp_PE.fa','w') as PE_seq_file:
         # make temp sequence file for alignment, hopefully re-written every time
                     #temp_seq = SeqRecord(Seq(template),id='template',name = 'template')
-                    SeqIO.write(pe_seqs[p_index].reverse_complement(),PE_seq_file,'fasta')
+                    SeqIO.write(pe_read,PE_seq_file,'fasta')
 
                 needle_cline = NeedleCommandline(asequence='temp_seq_PE.fa', bsequence='temp_temp_PE.fa', gapopen=10,
-                                                 gapextend=0.5, outfile='PE.needle') #hopefully only one needle file gets made
+                                                 gapextend=2, outfile='PE.needle') #hopefully only one needle file gets made
                 needle_cline()
                 aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
-                bin_scores = [[42,251],[205,501],[446,751],[687,1001],[928,1251],[1100,1500]] #same bin cutoff scores as alignment
+                bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500]] #same bin cutoff scores as alignment
                 #initialize cutoff scores
                 lo_cutoff = 0
                 hi_cutoff = 1500
-                f_list.append(len(str(aln_data[0][0].seq).lstrip('-').strip('-')))
-                pe_list.append(len(str(aln_data[0][1].seq).lstrip('-').strip('-')))
+                #f_list.append(len(str(aln_data[0][0].seq).lstrip('-').strip('-')))
+                #pe_list.append(len(str(aln_data[0][1].seq).lstrip('-').strip('-')))
                 
                 scores = score_cutoff_by_length(str(s.seq),bin_scores)
                 lo_cutoff = scores[0]
@@ -424,24 +436,33 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 match_coord_start = 0
                 match_coord_end = 0 
                 match_len = 0
-
+                missing_align = 0
                 if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] < hi_cutoff):
-                            #Template should have no gaps and should contain the whole
-                            # non-template sequence
-                    joined_align = [r for r,t in zip(aln_data[0][0],aln_data[0][1]) if t != '-']
-                    pe_read = SeqRecord(''.join(joined_align))
                     aln_ct += 1
                 else:
                     continue
-                if filt_seq not in str(s.seq): #if the scar isn't found on the forward read 
-                    bar = re.search('[AGCT]+',str(pe_read.seq)[0:-1:1]) #search forwards through reverse complement of PE read, find first base that aligned.
-                    match_len = bar.span()[1]-bar.span()[0]
-                    print("PE read is "+str(len(pe_read))+" long")
-                    match_coord_start = len(pe_read)-bar.span()[0] #since search is backwards, subtract index of first base from overall length. 
-                    match_coord_end = match_coord_start+match_len
-                    pe_read_rev = str(pe_seqs[p_index].reverse_complement().seq)
-                    search_oligo = str(pe_read_rev)[match_coord_start:match_coord_end]
+                if filt_seq not in str(s.seq): #if the scar isn't found on the forward read
                     missing_filt_seq +=1
+                    bar = re.search('[AGCT]+',str(aln_data[0][1].seq)[-1:0:-1]) #search backwards through reverse complement of PE read, find first base that aligned.
+                    bar_f = re.search('[AGCT]+',str(aln_data[0][0].seq)[-1:0:-1]) # search backwards through fwd read to find the first base that aligned
+                    if bar.span()[0] < bar_f.span()[0]: #this is if the fwd strand search goes longer until it hits an aligned base
+                        match_coord_start = len(s)-bar_f.span()[1]
+                        match_len = bar.span()[1]-bar_f.span()[0] #want the match length to go from the start of the first aligned base in the foward read to the last aligned base in the reverse read
+                        # if match_len < 0: #it is possible the forward read finds a small chunk 
+                        #     too_small_chunk += 1
+                        #     continue
+                    else: #should never encouer scenario where the reverse complement of the PE read goes longer until it hits an aligned base
+                        match_coord_start = len(s)-bar.span()[1] #since search is backwards, subtract index of last base from overall length.
+                        match_len = bar.span()[1]-bar.span()[0]
+                    #print("PE read is "+str(len(pe_read))+" long")
+  
+                    match_coord_end = match_coord_start+match_len
+                    # pe_read_rev = str(pe_seqs[p_index].reverse_complement().seq)
+                    search_oligo = str(pe_read.seq)[match_coord_start:match_coord_end]
+                    if len(search_oligo) > 20: #sometimes the entire region aligns, so I truncate it to just 20 bases for higher chance of alignment in the event of a mismatch surviving score filtering
+                        search_oligo = search_oligo[0:19]
+                    #print('search oligo is '+str(len(search_oligo))+' bases long')
+
                     if match_len < 12:
                         too_small_chunk += 1
                         continue
@@ -449,10 +470,11 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
                         bar3  = re.search(str(Seq(search_oligo).reverse_complement()),str(pe_seqs[p_index])) #find the aligned region's reverse complement in the actual PE sequence
                         bar4 = re.search(str(Seq(filt_seq).reverse_complement()),str(pe_seqs[p_index])) # find the filt sequence's reverse complement (in this case the scar) in the actual PE 
-                        if str(type(bar3)) == "<type 'NoneType'>":
-                            raise ValueError('aligned region not found in paired-end')
+                        if str(type(bar3)) == "<type 'NoneType'>" or str(type(bar1)) == "<type 'NoneType'>" : #in the event there was a mismatch in the search oligo, the regex search will fail. Skip this iteration for the time being
+                            missing_align += 1
+                            continue
                         elif str(type(bar4)) == "<type 'NoneType'>":
-                            raise ValueError('Transposon scar not found in paired-end')
+                            raise ValueError('Transposon scar not found in paired-end read')
                         f = quality_filter_single(pe_seqs[p_index][bar3.span()[1]:bar4.span()[1]],q_cutoff=20)
                         if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
                             bar2 = re.search(filt_seq,str(pe_read_rev)) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
@@ -492,6 +514,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches
     print(str(co_ct)+' forward reads had the coordinates of the PE read nearby')
     print(str(missing_filt_seq)+' reads were missing the scar')
+    print(str(missing_align)+ 'reads did not have a perfect aligned region')
     print(str(too_small_chunk)+ ' reads had too small of an aligned region')
     print(str(bad_quality_reads)+ 'reads had poor quality in the region to be appended')
     print(str(append_ct)+ ' reads had appended parts from the paired-end read')
