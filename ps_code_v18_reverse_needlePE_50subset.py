@@ -471,7 +471,8 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     else:
                         bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
                         bar3  = re.search(str(Seq(search_oligo).reverse_complement()),str(pe_seqs[p_index])) #find the aligned region's reverse complement in the actual PE sequence
-                        bar4 = re.search(str(Seq(filt_seq).reverse_complement()),str(pe_seqs[p_index])) # find the filt sequence's reverse complement (in this case the scar) in the actual PE 
+                        bar4 = re.search(str(Seq(filt_seq).reverse_complement()),str(pe_seqs[p_index])) # find the filt sequence's reverse complement (in this case the scar) in the actual PE
+                        bar5 = re.search(search_oligo,pe_read_rev) 
                         if str(type(bar3)) == "<type 'NoneType'>" or str(type(bar1)) == "<type 'NoneType'>" : #in the event there was a mismatch in the search oligo, the regex search will fail. Skip this iteration for the time being
                             missing_align += 1
                             continue
@@ -479,10 +480,10 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                             raise ValueError('Transposon scar not found in paired-end read')
                         f = quality_filter_single(pe_seqs[p_index][bar3.span()[1]:bar4.span()[1]],q_cutoff=20)
                         if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
-                            bar2 = re.search(filt_seq,str(pe_read_rev)) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
+                            bar2 = re.search(filt_seq,pe_read_rev) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
                             if str(type(bar2)) == "<type 'NoneType'>":
                                 raise ValueError('Transposon scar not found in paired-end read rev comp')
-                            pe_append = pe_read_rev[match_coord_end:bar2.span()[0]] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
+                            pe_append = pe_read_rev[bar5.span()[1]:bar2.span()[0]] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                             attempt_append += 1
                             print ("match coord end is "+str(match_coord_end)+ " bar2.span()[0] is "+ str(bar2.span()[0]))
                             temp_phred = s.letter_annotations.values()[0][0:bar1.span()[1]] #temporarily dump Phred quality scores into a list
