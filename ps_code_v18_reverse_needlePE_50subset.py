@@ -446,24 +446,25 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     bar = re.search('[AGCT]+',str(aln_data[0][1].seq)[-1:0:-1]) #search backwards through reverse complement of PE read, find first base that aligned.
                     bar_f = re.search('[AGCT]+',str(aln_data[0][0].seq)[-1:0:-1]) # search backwards through fwd read to find the first base that aligned
                     if bar.span()[0] < bar_f.span()[0]: #this is if the fwd strand search goes longer until it hits an aligned base
-                        match_coord_start = len(aln_data[0][0].seq)-bar_f.span()[1]
+                        match_coord_start = len(aln_data[0][1].seq)-bar.span()[1]
+                        match_coord_end = len(aln_data[0][1].seq)-bar_f.span()[0]
                         match_len = bar.span()[1]-bar_f.span()[0] #want the match length to go from the start of the first aligned base in the foward read to the last aligned base in the reverse read
                         # if match_len < 0: #it is possible the forward read finds a small chunk 
                         #     too_small_chunk += 1
                         #     continue
                     else: #should never encouer scenario where the reverse complement of the PE read goes longer until it hits an aligned base
                         match_coord_start = len(aln_data[0][1].seq)-bar.span()[1] #since search is backwards, subtract index of last base from overall length.
-                        match_len = bar.span()[1]-bar.span()[0]
+                        match_coord_end = len(aln_data[0][1].seq)-bar.span()[0]
                     #print("PE read is "+str(len(pe_read))+" long")
   
                     match_coord_end = match_coord_start+match_len
                     # pe_read_rev = str(pe_seqs[p_index].reverse_complement().seq)
-                    search_oligo = str(aln_data[0][1])[match_coord_start:match_coord_end] #coordinates are currently still based off the alignment alone
+                    search_oligo = str(aln_data[0][1].seq)[match_coord_start:match_coord_end] #coordinates are currently still based off the alignment alone
                     if len(search_oligo) > 20: #sometimes the entire region aligns, so I truncate it to just 20 bases for higher chance of alignment in the event of a mismatch surviving score filtering
                         search_oligo = search_oligo[0:19]
                     #print('search oligo is '+str(len(search_oligo))+' bases long')
 
-                    if match_len < 12:
+                    elif len(search_oligo) < 12:
                         too_small_chunk += 1
                         continue
                     else:
