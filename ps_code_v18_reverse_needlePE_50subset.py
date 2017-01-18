@@ -524,7 +524,8 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     print(str(missing_filt_seq)+' reads were missing the scar')
     print(str(missing_align)+ ' reads did not have a perfect aligned region')
     print(str(too_small_chunk)+ ' reads had too small of an aligned region')
-    print(str(bad_quality_reads)+ 'reads had poor quality in the region to be appended')
+    print(str(bad_quality_reads_first)+ 'reads had poor quality in the region to be appended')
+    print(str(bad_quality_reads_later)+' reads had overall poor quality in the final sequence')
     print(str(attempt_append)+ ' reads started to be appended before perhaps failing in the added bases quality')
     print(str(append_ct)+ ' reads had appended parts from the paired-end read')
     return matched_seq_list,read_len_list
