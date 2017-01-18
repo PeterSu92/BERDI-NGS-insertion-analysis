@@ -376,6 +376,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     missing_filt_seq = 0 #number of forward reads missing the back filter sequence
     too_small_chunk = 0 #number of forward reads that had too small of a chunk to be kept
     bad_quality_reads = 0 #number of paired-end reads whose region inbetween alignment and scar has too low of a quality score to pass
+    attempt_append = 0
     read_len_list = [] #list of read lengths regardless of whether or not they pass the alignment score filter
     co_ct = 0 #number of sequences with coordinate matches
     aln_ct = 0 #number of sequences with paired end sequence matches
@@ -480,6 +481,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
                             bar2 = re.search(filt_seq,str(pe_read_rev)) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
                             pe_append = pe_read_rev[match_coord_end:bar2.span()[0]] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
+                            attempt_append += 1
                             print ("match coord end is "+str(match_coord_end)+ " bar2.span()[0] is "+ str(bar2.span()[0]))
                             temp_phred = s.letter_annotations.values()[0][0:bar1.span()[1]] #temporarily dump Phred quality scores into a list
                             temp_pe_phred = pe_seqs[p_index][bar3.span()[1]:bar4.span()[0]].letter_annotations.values()[0] #append phred quality scores of the region of interest to be appended
@@ -515,9 +517,10 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches
     print(str(co_ct)+' forward reads had the coordinates of the PE read nearby')
     print(str(missing_filt_seq)+' reads were missing the scar')
-    print(str(missing_align)+ 'reads did not have a perfect aligned region')
+    print(str(missing_align)+ ' reads did not have a perfect aligned region')
     print(str(too_small_chunk)+ ' reads had too small of an aligned region')
     print(str(bad_quality_reads)+ 'reads had poor quality in the region to be appended')
+    print(str(attempt_append)+ ' reads started to be appended before perhaps failing in the added bases quality')
     print(str(append_ct)+ ' reads had appended parts from the paired-end read')
     return matched_seq_list,read_len_list
     
