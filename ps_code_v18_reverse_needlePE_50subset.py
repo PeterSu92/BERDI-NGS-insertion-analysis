@@ -462,14 +462,15 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
   
                     # match_coord_end = match_coord_start+match_len
                     pe_read_rev = str(pe_seqs[p_index].reverse_complement().seq)
-                    search_oligo = str(aln_data[0][1].seq)[match_coord_start:match_coord_end] #coordinates are current0ly still based off the alignment alone
-                    if len(search_oligo) > 20: #sometimes the entire region aligns, so I truncate it to just 20 bases for higher chance of alignment in the event of a mismatch surviving score filtering
+                    search_oligo = str(aln_data[0][1].seq)[match_coord_start:match_coord_end] #coordinates are currently still based off the alignment alone
+                    if len(search_oligo) < 12:
+                        too_small_chunk += 1
+                        continue
+                    elif len(search_oligo) > 20: #sometimes the entire region aligns, so I truncate it to just 20 bases for higher chance of alignment in the event of a mismatch surviving score filtering
                         search_oligo = search_oligo[len(search_oligo)-12:]
                     #print('search oligo is '+str(len(search_oligo))+' bases long')
 
-                    elif len(search_oligo) < 12:
-                        too_small_chunk += 1
-                        continue
+
                     else:
                         bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
                         bar3  = re.search(str(Seq(search_oligo).reverse_complement()),str(pe_seqs[p_index].seq)) #find the aligned region's reverse complement in the actual PE sequence
@@ -480,6 +481,8 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                             continue
                         elif str(type(bar4)) == "<type 'NoneType'>":
                             raise ValueError('Transposon scar not found in paired-end read')
+                        elif bar4.span()[1]>bar3.span()[0]: # if some alignment happens such that part of the transposon scar aligns, this is messy and not worth dealing with
+                            continue
                         f = quality_filter_single(pe_seqs[p_index][bar4.span()[1]:bar3.span()[0]],q_cutoff=20)
                         if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
                             print ("Appended region is from "+str(bar4.span()[1])+ " to "+ str(bar3.span()[0]))
