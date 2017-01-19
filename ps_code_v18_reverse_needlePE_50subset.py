@@ -311,6 +311,11 @@ def get_copied_seq(s,f_res):
             return s[f_res[0].search(str(s.seq)).start():list(f_res[2].finditer(str(s.seq)))[-1].start()]            
             # Indices will vary! Must find the sequence in between the f_res sequences
             # Don't understand finditer super well
+# def get_copied_seq_half(s,f_res):
+#             # Finds part of the template sequence by basically copying the read sequence inbetween barcode and common
+#             # sequence
+#             #return s[f_res[0].search(str(s.seq)).end():list(f_res[1].finditer(str(s.seq)))[-1].start()]
+#             return s[f_res[0].search(str(s.seq)).start():]  
 def gen_copied_seq_function(f_res):
             #This does something similar to get_copied_seq but returns a function of the SeqRecord object
             # instead of a list. This is for speed then?
@@ -490,7 +495,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         pe_append = pe_read_rev[bar5.span()[1]:bar2.span()[0]] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                         attempt_append += 1
                         temp_phred = s.letter_annotations.values()[0][0:bar1.span()[1]] #temporarily dump Phred quality scores into a list
-                        temp_pe_phred = pe_seqs[p_index][bar3.span()[1]:bar4.span()[0]].letter_annotations.values()[0] #append phred quality scores of the region of interest to be appended
+                        temp_pe_phred = pe_seqs[p_index][bar4.span()[1]:bar3.span()[0]].letter_annotations.values()[0] #append phred quality scores of the region of interest to be appended
                         temp_phred = temp_phred+temp_pe_phred
                         #print(str(len(temp_phred))+ 'Phred scores')
                         s.letter_annotations = {} #clear the letter annotations so that the sequence can be changed
