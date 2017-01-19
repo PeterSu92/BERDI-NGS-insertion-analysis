@@ -482,6 +482,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                             raise ValueError('Transposon scar not found in paired-end read')
                         f = quality_filter_single(pe_seqs[p_index][bar3.span()[1]:bar4.span()[0]],q_cutoff=20)
                         if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
+                            print ("Appended region is from "+str(bar3.span()[1])+ " to "+ str(bar4.span()[0]))
                             bar2 = re.search(filt_seq,pe_read_rev) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
                             if str(type(bar2)) == "<type 'NoneType'>":
                                 raise ValueError('Transposon scar not found in paired-end read rev comp')
@@ -499,7 +500,8 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                             new_qual = quality_filter_single(s,q_cutoff=20)
                             if new_qual > 0:
                                 matched_seq_list.append(s)
-                                append_ct += 1 
+                                append_ct += 1
+                                continue 
                             else:
                                 bad_quality_reads_later +=1
                                 continue
