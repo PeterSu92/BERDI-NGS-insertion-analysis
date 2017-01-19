@@ -382,6 +382,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     f_list = []
     pe_list = []
     missing_filt_seq = 0 #number of forward reads missing the back filter sequence
+    missing_pe_filt_seq = 0 #number of PE reads missing the scar (shouldn't happen?)
     too_small_chunk = 0 #number of forward reads that had too small of a chunk to be kept
     bad_quality_reads_first = 0 #number of paired-end reads whose region inbetween alignment and scar has too low of a quality score to pass
     bad_quality_reads_later = 0 #number of reads that fail the quality test after appending
@@ -400,7 +401,6 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     si = 0
 
     for s in f_seqs:
-
             if pe_coordL.count(get_coords(s)):
                 #Apparently the above line returns a boolean so long as the count
                 #isn't zero, so if the paired-end coordinates were found, the block below
@@ -489,6 +489,9 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     bar5 = re.search(search_oligo,pe_read_rev) 
                     if str(type(bar3)) == "<type 'NoneType'>" or str(type(bar1)) == "<type 'NoneType'>" : #in the event there was a mismatch in the search oligo, the regex search will fail. Skip this iteration for the time being
                         missing_align += 1
+                        continue
+                    elif str(type(bar4)) == "<type 'NoneType'>"
+                        missing_pe_filt_seq += 1
                         continue
                     elif bar4.span()[1] > bar3.span()[0]: # if some alignment happens such that part of the transposon scar aligns, this is messy and not worth dealing with
                         nonphys_overlap += 1
