@@ -111,8 +111,8 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         f_seqs = load_ngs_file(f_name)
         pe_seqs = load_ngs_file(pe_name)
         # Create lists of SeqRecord objects from the generators
-        f_seqs1 = list(f_seqs)
-        pe_seqs1 = list(pe_seqs)
+        f_seqs1 = [s for s in f_seqs if 'N' not in str(s.seq)]
+        pe_seqs1 = [s for s in pe_seqs if 'N' not in str(s.seq)]
         print(str(len(f_seqs1))+' forward reads and '+str(len(pe_seqs1))+' paired end reads initially')  
         #Filter for quality
         # These sequences with "2" at the end will be filtered for the sequences
@@ -472,8 +472,8 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         continue
                     else:
                         bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
-                        bar3  = re.search(str(Seq(search_oligo).reverse_complement()),str(pe_seqs[p_index])) #find the aligned region's reverse complement in the actual PE sequence
-                        bar4 = re.search(str(Seq(filt_seq).reverse_complement()),str(pe_seqs[p_index])) # find the filt sequence's reverse complement (in this case the scar) in the actual PE
+                        bar3  = re.search(str(Seq(search_oligo).reverse_complement()),str(pe_seqs[p_index].seq)) #find the aligned region's reverse complement in the actual PE sequence
+                        bar4 = re.search(str(Seq(filt_seq).reverse_complement()),str(pe_seqs[p_index].seq)) # find the filt sequence's reverse complement (in this case the scar) in the actual PE
                         bar5 = re.search(search_oligo,pe_read_rev) 
                         if str(type(bar3)) == "<type 'NoneType'>" or str(type(bar1)) == "<type 'NoneType'>" : #in the event there was a mismatch in the search oligo, the regex search will fail. Skip this iteration for the time being
                             missing_align += 1
@@ -482,7 +482,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                             raise ValueError('Transposon scar not found in paired-end read')
                         f = quality_filter_single(pe_seqs[p_index][bar4.span()[1]:bar3.span()[0]],q_cutoff=20)
                         if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
-                            print ("Appended region is from "+str(bar4.span()[1])+ " to "+ str(bar3.span()[1]))
+                            print ("Appended region is from "+str(bar4.span()[1])+ " to "+ str(bar3.span()[0]))
                             bar2 = re.search(filt_seq,pe_read_rev) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
                             if str(type(bar2)) == "<type 'NoneType'>":
                                 raise ValueError('Transposon scar not found in paired-end read rev comp')
