@@ -439,6 +439,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 match_coord_end = 0 
                 match_len = 0
                 missing_align = 0
+                nonphys_overlap = 0
                 f = 0
                 if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] < hi_cutoff):
                     aln_ct += 1
@@ -482,6 +483,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         elif str(type(bar4)) == "<type 'NoneType'>":
                             raise ValueError('Transposon scar not found in paired-end read')
                         elif bar4.span()[1]>bar3.span()[0]: # if some alignment happens such that part of the transposon scar aligns, this is messy and not worth dealing with
+                            nonphys_overlap += 1
                             continue
                         f = quality_filter_single(pe_seqs[p_index][bar4.span()[1]:bar3.span()[0]],q_cutoff=20)
                         if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
@@ -529,6 +531,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     print(str(missing_filt_seq)+' reads were missing the scar')
     print(str(missing_align)+ ' reads did not have a perfect aligned region')
     print(str(too_small_chunk)+ ' reads had too small of an aligned region')
+    print(str(nonphys_overlap)+' reads had part of the scar or some nonphysical overlap')
     print(str(bad_quality_reads_first)+ 'reads had poor quality in the region to be appended')
     print(str(bad_quality_reads_later)+' reads had overall poor quality in the final sequence')
     print(str(attempt_append)+ ' reads started to be appended before perhaps failing in the added bases quality')
