@@ -172,10 +172,11 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         bin4 = [] #bin4 is reads between 150 and 200 bases
         bin5 = [] #bin5 is reads between 200 and 250 bases
         bin6 = [] #bin6 is reads between 250 and 300 bases
+        bin7 = [] #bin7 contains between 300 and 350 bases
         # Create a list of all of the bins for iterative purposes
-        big_bin = [bin1,bin2,bin3,bin4,bin5,bin6]
+        big_bin = [bin1,bin2,bin3,bin4,bin5,bin6,bin7]
         # Cutoff scores for each bin
-        bin_scores = [[42,251],[205,501],[446,751],[687,1001],[928,1251],[1100,1500]]
+        bin_scores = [[42,251],[205,501],[446,751],[687,1001],[928,1251],[1100,1500],[1700,2000]]
         # Put sequences into bins based on their length        
         for s in seqs:
                 
@@ -191,6 +192,8 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
                     bin5.append(s)
                 elif ((len(str(s.seq)) >= 250) and (len(str(s.seq)) < 300)):
                     bin6.append(s)
+                elif ((len(str(s.seq)) >= 300) and (len(str(s.seq)) < 350)):
+                    bin7.append(s)
         newSeqs = []
         # Run alignment with score cutoffs based on read length    
         for i in range(len(big_bin)):
@@ -487,11 +490,11 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         continue
                     f = quality_filter_single(pe_seqs[p_index][bar4.span()[1]:bar3.span()[0]],q_cutoff=20)
                     if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
-                        print ("Appended region is from "+str(bar4.span()[1])+ " to "+ str(bar3.span()[0]))
+                        # print ("Appended region is from "+str(bar4.span()[1])+ " to "+ str(bar3.span()[0]))
                         bar2 = re.search(filt_seq,pe_read_rev) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
                         if str(type(bar2)) == "<type 'NoneType'>":
                             raise ValueError('Transposon scar not found in paired-end read rev comp')
-                        print ("bar5.span()[1] is "+str(bar5.span()[1])+ " bar2.span()[0] is "+ str(bar2.span()[0]))
+                        # print ("bar5.span()[1] is "+str(bar5.span()[1])+ " bar2.span()[0] is "+ str(bar2.span()[0]))
                         pe_append = pe_read_rev[bar5.span()[1]:bar2.span()[0]] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                         attempt_append += 1
                         temp_phred = s.letter_annotations.values()[0][0:bar1.span()[1]] #temporarily dump Phred quality scores into a list
@@ -500,7 +503,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         #print(str(len(temp_phred))+ 'Phred scores')
                         s.letter_annotations = {} #clear the letter annotations so that the sequence can be changed
                         s.seq = s.seq[0:bar1.span()[1]]+pe_append #return only the part of the forward read up to the end of the aligned region then plus the paired-end read up to the scar
-                        print('appended portion is '+str(len(pe_append))+ ' long')
+                        # print('appended portion is '+str(len(pe_append))+ ' long')
                         s.letter_annotations = {'phred_quality':temp_phred} #now put back the new phred quality score list
                         new_qual = quality_filter_single(s,q_cutoff=20)
                         if new_qual > 0:
