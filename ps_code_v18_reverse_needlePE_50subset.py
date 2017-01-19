@@ -180,19 +180,19 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         # Put sequences into bins based on their length        
         for s in seqs:
                 
-                if (len(str(s.seq)) >= 12) and (len(str(s.seq)) < 50): #with the primer sequences included, nothing should be below 12 bp
+                if (len(str(s.seq).strip('-')) >= 12) and (len(str(s.seq).strip('-')) < 50): #with the primer sequences included, nothing should be below 12 bp
                     bin1.append(s)
-                elif ((len(str(s.seq)) >= 50) and (len(str(s.seq)) < 100)):        
+                elif ((len(str(s.seq).strip('-')) >= 50) and (len(str(s.seq).strip('-')) < 100)):        
                     bin2.append(s)
-                elif ((len(str(s.seq)) >= 100) and (len(str(s.seq)) < 150)):
+                elif ((len(str(s.seq).strip('-')) >= 100) and (len(str(s.seq).strip('-')) < 150)):
                     bin3.append(s)                    
-                elif ((len(str(s.seq)) >= 150) and (len(str(s.seq)) < 200)):
+                elif ((len(str(s.seq).strip('-')) >= 150) and (len(str(s.seq).strip('-')) < 200)):
                     bin4.append(s)            
-                elif ((len(str(s.seq)) >= 200) and (len(str(s.seq)) < 250)):
+                elif ((len(str(s.seq)) >= 200) and (len(str(s.seq).strip('-')) < 250)):
                     bin5.append(s)
-                elif ((len(str(s.seq)) >= 250) and (len(str(s.seq)) < 300)):
+                elif ((len(str(s.seq).strip('-')) >= 250) and (len(str(s.seq).strip('-')) < 300)):
                     bin6.append(s)
-                elif ((len(str(s.seq)) >= 300) and (len(str(s.seq)) < 350)):
+                elif ((len(str(s.seq).strip('-')) >= 300) and (len(str(s.seq).strip('-')) < 350)):
                     bin7.append(s)
         newSeqs = []
         # Run alignment with score cutoffs based on read length    
