@@ -429,8 +429,6 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 #initialize cutoff scores
                 lo_cutoff = 0
                 hi_cutoff = 1500
-                #f_list.append(len(str(aln_data[0][0].seq).lstrip('-').strip('-')))
-                #pe_list.append(len(str(aln_data[0][1].seq).lstrip('-').strip('-')))
                 
                 scores = score_cutoff_by_length(str(s.seq),bin_scores)
                 lo_cutoff = scores[0]
@@ -470,60 +468,55 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     elif len(search_oligo) > 20: #sometimes the entire region aligns, so I truncate it to just 20 bases for higher chance of alignment in the event of a mismatch surviving score filtering
                         search_oligo = search_oligo[len(search_oligo)-12:]
                     #print('search oligo is '+str(len(search_oligo))+' bases long')
-
+                    bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
+                    bar3  = re.search(str(Seq(search_oligo).reverse_complement()),str(pe_seqs[p_index].seq)) #find the aligned region's reverse complement in the actual PE sequence
+                    bar4 = re.search(filt_seq,str(pe_seqs[p_index].seq)) # find the filt sequence's reverse complement (in this case the scar) in the actual PE
+                    bar5 = re.search(search_oligo,pe_read_rev) 
+                    if str(type(bar3)) == "<type 'NoneType'>" or str(type(bar1)) == "<type 'NoneType'>" : #in the event there was a mismatch in the search oligo, the regex search will fail. Skip this iteration for the time being
+                        missing_align += 1
+                        continue
+                    # elif str(type(bar4)) == "<type 'NoneType'>":
+                    #     raise ValueError('Transposon scar not found in paired-end read')
+                    elif bar4.span()[1] > bar3.span()[0]: # if some alignment happens such that part of the transposon scar aligns, this is messy and not worth dealing with
+                        nonphys_overlap += 1
+                        continue
+                    f = quality_filter_single(pe_seqs[p_index][bar4.span()[1]:bar3.span()[0]],q_cutoff=20)
+                    if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
+                        print ("Appended region is from "+str(bar4.span()[1])+ " to "+ str(bar3.span()[0]))
+                        bar2 = re.search(filt_seq,pe_read_rev) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
+                        if str(type(bar2)) == "<type 'NoneType'>":
+                            raise ValueError('Transposon scar not found in paired-end read rev comp')
+                        print ("bar5.span()[1] is "+str(bar5.span()[1])+ " bar2.span()[0] is "+ str(bar2.span()[0]))
+                        pe_append = pe_read_rev[bar5.span()[1]:bar2.span()[0]] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
+                        attempt_append += 1
+                        temp_phred = s.letter_annotations.values()[0][0:bar1.span()[1]] #temporarily dump Phred quality scores into a list
+                        temp_pe_phred = pe_seqs[p_index][bar3.span()[1]:bar4.span()[0]].letter_annotations.values()[0] #append phred quality scores of the region of interest to be appended
+                        temp_phred = temp_phred+temp_pe_phred
+                        #print(str(len(temp_phred))+ 'Phred scores')
+                        s.letter_annotations = {} #clear the letter annotations so that the sequence can be changed
+                        s.seq = s.seq[0:bar1.span()[1]]+pe_append #return only the part of the forward read up to the end of the aligned region then plus the paired-end read up to the scar
+                        print('appended portion is '+str(len(pe_append))+ ' long')
+                        s.letter_annotations = {'phred_quality':temp_phred} #now put back the new phred quality score list
+                        new_qual = quality_filter_single(s,q_cutoff=20)
+                        if new_qual > 0:
+                            matched_seq_list.append(s)
+                            append_ct += 1
+                            continue 
+                        else:
+                            bad_quality_reads_later +=1
+                            continue
 
                     else:
-                        bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
-                        bar3  = re.search(str(Seq(search_oligo).reverse_complement()),str(pe_seqs[p_index].seq)) #find the aligned region's reverse complement in the actual PE sequence
-                        bar4 = re.search(filt_seq,str(pe_seqs[p_index].seq)) # find the filt sequence's reverse complement (in this case the scar) in the actual PE
-                        bar5 = re.search(search_oligo,pe_read_rev) 
-                        if str(type(bar3)) == "<type 'NoneType'>" or str(type(bar1)) == "<type 'NoneType'>" : #in the event there was a mismatch in the search oligo, the regex search will fail. Skip this iteration for the time being
-                            missing_align += 1
-                            continue
-                        elif str(type(bar4)) == "<type 'NoneType'>":
-                            raise ValueError('Transposon scar not found in paired-end read')
-                        elif bar4.span()[1]>bar3.span()[0]: # if some alignment happens such that part of the transposon scar aligns, this is messy and not worth dealing with
-                            nonphys_overlap += 1
-                            continue
-                        f = quality_filter_single(pe_seqs[p_index][bar4.span()[1]:bar3.span()[0]],q_cutoff=20)
-                        if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
-                            print ("Appended region is from "+str(bar4.span()[1])+ " to "+ str(bar3.span()[0]))
-                            bar2 = re.search(filt_seq,pe_read_rev) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
-                            if str(type(bar2)) == "<type 'NoneType'>":
-                                raise ValueError('Transposon scar not found in paired-end read rev comp')
-                            print ("bar5.span()[1] is "+str(bar5.span()[1])+ " bar2.span()[0] is "+ str(bar2.span()[0]))
-                            pe_append = pe_read_rev[bar5.span()[1]:bar2.span()[0]] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
-                            attempt_append += 1
-                            temp_phred = s.letter_annotations.values()[0][0:bar1.span()[1]] #temporarily dump Phred quality scores into a list
-                            temp_pe_phred = pe_seqs[p_index][bar3.span()[1]:bar4.span()[0]].letter_annotations.values()[0] #append phred quality scores of the region of interest to be appended
-                            temp_phred = temp_phred+temp_pe_phred
-                            #print(str(len(temp_phred))+ 'Phred scores')
-                            s.letter_annotations = {} #clear the letter annotations so that the sequence can be changed
-                            s.seq = s.seq[0:bar1.span()[1]]+pe_append #return only the part of the forward read up to the end of the aligned region then plus the paired-end read up to the scar
-                            print('appended portion is '+str(len(pe_append))+ ' long')
-                            s.letter_annotations = {'phred_quality':temp_phred} #now put back the new phred quality score list
-                            new_qual = quality_filter_single(s,q_cutoff=20)
-                            if new_qual > 0:
-                                matched_seq_list.append(s)
-                                append_ct += 1
-                                continue 
-                            else:
-                                bad_quality_reads_later +=1
-                                continue
-                            # matched_seq_list.append(s)
-                            # append_ct += 1 
-
-                        else:
-                            bad_quality_reads_first += 1
-                            continue
+                        bad_quality_reads_first += 1
+                        continue
                 else:
-                        # bar1 = re.search(search_oligo,str(s.seq))
+
                     copied = copied_func(s)
                     matched_seq_list.append(copied)
             print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
             si = si + 1
  
-    read_len_list = [f_list,pe_list]
+    # read_len_list = [f_list,pe_list]
     print ("")
     
     count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches
