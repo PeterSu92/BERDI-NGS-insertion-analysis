@@ -464,7 +464,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     pe_read_rev = str(pe_seqs[p_index].reverse_complement().seq)
                     search_oligo = str(aln_data[0][1].seq)[match_coord_start:match_coord_end] #coordinates are currently still based off the alignment alone
                     if len(search_oligo) > 20: #sometimes the entire region aligns, so I truncate it to just 20 bases for higher chance of alignment in the event of a mismatch surviving score filtering
-                        search_oligo = search_oligo[0:19]
+                        search_oligo = search_oligo[0:12]
                     #print('search oligo is '+str(len(search_oligo))+' bases long')
 
                     elif len(search_oligo) < 12:
