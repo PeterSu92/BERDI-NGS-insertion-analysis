@@ -218,7 +218,7 @@ def insertion_site_freq(final_seqs):
 output_file_prefix = 'PCR2 v1'
 #Bin cutoff scores
 #normal_bin_scores = [[42,251],[205,501],[446,751],[687,1001],[928,1251],[1100,1500]]
-bin_scores = [[30,251],[60,501],[250,751],[500,1001],[750,1251],[1000,1500]]
+bin_scores = [[30,251],[60,501],[250,751],[500,1001],[750,1251],[1000,1500],[1400,1750]]
 final_sequences = []
 newseqs = []
 needle_files = glob.glob('*.needle')
