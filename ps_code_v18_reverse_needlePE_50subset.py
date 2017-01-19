@@ -151,14 +151,14 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         with open('matched_seq_PE.fa','w') as sh: #create temporary seq file, hopefully re-written each time
                 #temp_f_seq = copied
              SeqIO.write(seqs,sh,'fastq')
-        read_len_postalign_list = s1[1]
+        # read_len_postalign_list = s1[1]
         print(str(len(seqs))+' forward reads have a paired-end match')
         
-        with open('read_lengths_PE.csv','w') as file:
-            writer = csv.writer(file)
-            writer.writerow(["fwd reads","pe reads"])
-            writer.writerows(zip(s1[1][0],s1[1][1]))
-            file.close()
+        # with open('read_lengths_PE.csv','w') as file:
+        #     writer = csv.writer(file)
+        #     writer.writerow(["fwd reads","pe reads"])
+        #     writer.writerows(zip(s1[1][0],s1[1][1]))
+        #     file.close()
 
         seqs = quality_filter(seqs,q_cutoff=20)
         print(str(len(seqs))+' forward reads survived the Phred score quality filter')
