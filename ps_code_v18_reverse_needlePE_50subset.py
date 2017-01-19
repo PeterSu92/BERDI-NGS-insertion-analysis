@@ -409,10 +409,10 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                  #Get part of the sequence that was actually copied 
                 # print('copied is type ',type(copied))
                 #temp_f_seq = copied
-                f_list.append(len(s))
+                # f_list.append(len(s))
 
                 p_index = pe_coordL.index(get_coords(s))
-                pe_list.append(len(pe_seqs[p_index]))
+                # pe_list.append(len(pe_seqs[p_index]))
                 pe_read = pe_seqs[p_index].reverse_complement()
                 if len(s) > len(pe_read):
                     s = s[0:len(pe_read)]
@@ -420,6 +420,11 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     pe_seqs[p_index] = pe_seqs[p_index][0:len(s)]  
                     pe_read = pe_seqs[p_index].reverse_complement()     
 
+                if filt_seq in str(s.seq): #if the scar is present in the forward read, proceed as with the perfect match
+                    copied = copied_func(s)
+                    aln_ct += 1
+                    matched_seq_list.append(copied)
+                    continue
  
                 with open('temp_seq_PE.fa','w') as sh: #create temporary seq file, hopefully re-written each time
                 #temp_f_seq = copied
@@ -451,11 +456,9 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     aln_ct += 1
                 else:
                     continue
-                if filt_seq in str(s.seq): #if the scar is present in the forward read, proceed as with the perfect match
-                    copied = copied_func(s)
-                    matched_seq_list.append(copied)
 
-                else: #if the scar isn't found on the forward read
+
+                #if the scar isn't found on the forward read
                     missing_filt_seq +=1
                     bar = re.search('[AGCT]+',str(aln_data[0][1].seq)[-1:0:-1]) #search backwards through reverse complement of PE read, find first base that aligned.
                     bar_f = re.search('[AGCT]+',str(aln_data[0][0].seq)[-1:0:-1]) # search backwards through fwd read to find the first base that aligned
