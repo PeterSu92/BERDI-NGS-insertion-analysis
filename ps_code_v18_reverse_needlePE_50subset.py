@@ -176,7 +176,7 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         # Create a list of all of the bins for iterative purposes
         big_bin = [bin1,bin2,bin3,bin4,bin5,bin6,bin7]
         # Cutoff scores for each bin
-        bin_scores = [[42,251],[205,501],[446,751],[687,1001],[928,1251],[1100,1500],[1600,1750]]
+        bin_scores = [[42,251],[205,501],[446,751],[687,1001],[928,1251],[1100,1500],[1400,1750]]
         # Put sequences into bins based on their length        
         for s in seqs:
                 
