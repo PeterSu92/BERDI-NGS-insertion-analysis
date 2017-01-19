@@ -188,7 +188,7 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
                     bin3.append(s)                    
                 elif ((len(str(s.seq).strip('-')) >= 150) and (len(str(s.seq).strip('-')) < 200)):
                     bin4.append(s)            
-                elif ((len(str(s.seq)) >= 200) and (len(str(s.seq).strip('-')) < 250)):
+                elif ((len(str(s.seq).strip('-')) >= 200) and (len(str(s.seq).strip('-')) < 250)):
                     bin5.append(s)
                 elif ((len(str(s.seq).strip('-')) >= 250) and (len(str(s.seq).strip('-')) < 300)):
                     bin6.append(s)
