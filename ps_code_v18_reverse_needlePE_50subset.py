@@ -146,7 +146,7 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         # Now that only sequences containing BOTH the CS and the TR have been filtered for,
         # the paired-end matching can occur
         
-        s1 = filter_pe_mismatch(f_seqs3,pe_seqs3,gen_copied_seq_function(f_res),f_filt_seqs[2]) #right now using the scar
+        s1 = filter_pe_mismatch(f_seqs3[0:10000],pe_seqs3[0:10000],gen_copied_seq_function(f_res),f_filt_seqs[2]) #right now using the scar
         seqs = s1[0]
         with open('matched_seq_PE.fa','w') as sh: #create temporary seq file, hopefully re-written each time
                 #temp_f_seq = copied
@@ -451,7 +451,11 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     aln_ct += 1
                 else:
                     continue
-                if filt_seq not in str(s.seq): #if the scar isn't found on the forward read
+                if filt_seq in str(s.seq): #if the scar is present in the forward read, proceed as with the perfect match
+                    copied = copied_func(s)
+                    matched_seq_list.append(copied)
+
+                else: #if the scar isn't found on the forward read
                     missing_filt_seq +=1
                     bar = re.search('[AGCT]+',str(aln_data[0][1].seq)[-1:0:-1]) #search backwards through reverse complement of PE read, find first base that aligned.
                     bar_f = re.search('[AGCT]+',str(aln_data[0][0].seq)[-1:0:-1]) # search backwards through fwd read to find the first base that aligned
@@ -483,14 +487,11 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     if str(type(bar3)) == "<type 'NoneType'>" or str(type(bar1)) == "<type 'NoneType'>" : #in the event there was a mismatch in the search oligo, the regex search will fail. Skip this iteration for the time being
                         missing_align += 1
                         continue
-                    # elif str(type(bar4)) == "<type 'NoneType'>":
-                    #     raise ValueError('Transposon scar not found in paired-end read')
                     elif bar4.span()[1] > bar3.span()[0]: # if some alignment happens such that part of the transposon scar aligns, this is messy and not worth dealing with
                         nonphys_overlap += 1
                         continue
                     f = quality_filter_single(pe_seqs[p_index][bar4.span()[1]:bar3.span()[0]],q_cutoff=20)
                     if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
-                        # print ("Appended region is from "+str(bar4.span()[1])+ " to "+ str(bar3.span()[0]))
                         bar2 = re.search(filt_seq,pe_read_rev) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
                         if str(type(bar2)) == "<type 'NoneType'>":
                             raise ValueError('Transposon scar not found in paired-end read rev comp')
@@ -508,8 +509,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         new_qual = quality_filter_single(s,q_cutoff=20)
                         if new_qual > 0:
                             matched_seq_list.append(s)
-                            append_ct += 1
-                            continue 
+                            append_ct += 1 
                         else:
                             bad_quality_reads_later +=1
                             continue
@@ -517,10 +517,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     else:
                         bad_quality_reads_first += 1
                         continue
-                else:
 
-                    copied = copied_func(s)
-                    matched_seq_list.append(copied)
             print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
             si = si + 1
  
