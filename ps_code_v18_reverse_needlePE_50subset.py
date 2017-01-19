@@ -146,7 +146,7 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         # Now that only sequences containing BOTH the CS and the TR have been filtered for,
         # the paired-end matching can occur
         
-        s1 = filter_pe_mismatch(f_seqs3[0:10000],pe_seqs3[0:10000],gen_copied_seq_function(f_res),f_filt_seqs[2]) #right now using the scar
+        s1 = filter_pe_mismatch(f_seqs3,pe_seqs3,gen_copied_seq_function(f_res),f_filt_seqs[2]) #right now using the scar
         seqs = s1[0]
         with open('matched_seq_PE.fa','w') as sh: #create temporary seq file, hopefully re-written each time
                 #temp_f_seq = copied
