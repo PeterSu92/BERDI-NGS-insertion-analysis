@@ -490,7 +490,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     if str(type(bar3)) == "<type 'NoneType'>" or str(type(bar1)) == "<type 'NoneType'>" : #in the event there was a mismatch in the search oligo, the regex search will fail. Skip this iteration for the time being
                         missing_align += 1
                         continue
-                    elif str(type(bar4)) == "<type 'NoneType'>"
+                    elif str(type(bar4)) == "<type 'NoneType'>":
                         missing_pe_filt_seq += 1
                         continue
                     elif bar4.span()[1] > bar3.span()[0]: # if some alignment happens such that part of the transposon scar aligns, this is messy and not worth dealing with
@@ -507,10 +507,10 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         temp_phred = s.letter_annotations.values()[0][0:bar1.span()[1]] #temporarily dump Phred quality scores into a list
                         temp_pe_phred = pe_seqs[p_index][bar4.span()[1]:bar3.span()[0]].letter_annotations.values()[0] #append phred quality scores of the region of interest to be appended
                         temp_phred = temp_phred+temp_pe_phred
-                        #print(str(len(temp_phred))+ 'Phred scores')
+                        print(str(len(temp_phred))+ 'Phred scores')
                         s.letter_annotations = {} #clear the letter annotations so that the sequence can be changed
                         s.seq = s.seq[0:bar1.span()[1]]+pe_append #return only the part of the forward read up to the end of the aligned region then plus the paired-end read up to the scar
-                        # print('appended portion is '+str(len(pe_append))+ ' long')
+                        print('appended portion is '+str(len(pe_append))+ ' long')
                         s.letter_annotations = {'phred_quality':temp_phred} #now put back the new phred quality score list
                         new_qual = quality_filter_single(s,q_cutoff=20)
                         if new_qual > 0:
@@ -533,6 +533,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches
     print(str(co_ct)+' forward reads had the coordinates of the PE read nearby')
     print(str(missing_filt_seq)+' reads were missing the scar')
+    print(str(missing_pe_filt_seq)+ 'paired-end reads are missing the scar!!!!')
     print(str(missing_align)+ ' reads did not have a perfect aligned region')
     print(str(too_small_chunk)+ ' reads had too small of an aligned region')
     print(str(nonphys_overlap)+' reads had part of the scar or some nonphysical overlap')
