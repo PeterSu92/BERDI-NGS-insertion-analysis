@@ -422,9 +422,36 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
 
                 if filt_seq in str(s.seq): #if the scar is present in the forward read, proceed as with the perfect match
                     copied = copied_func(s)
-                    if str(pe_seqs[p_index].reverse_complement().seq).find(str(copied.seq)):
-                        aln_ct += 1
+                    with open('temp_seq_PE.fa','w') as sh: #create temporary seq file, hopefully re-written each time
+                    #temp_f_seq = copied
+                        SeqIO.write(copied,sh,'fastq')  
+                    with open('temp_temp_PE.fa','w') as PE_seq_file:
+            # make temp sequence file for alignment, hopefully re-written every time
+                        #temp_seq = SeqRecord(Seq(template),id='template',name = 'template')
+                        SeqIO.write(pe_read,PE_seq_file,'fasta')
+
+                    needle_cline = NeedleCommandline(asequence='temp_seq_PE.fa', bsequence='temp_temp_PE.fa', gapopen=10,
+                                                     gapextend=2, outfile='PE.needle') #hopefully only one needle file gets made
+                    needle_cline()
+                    aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
+                    bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500]] #same bin cutoff scores as alignment
+                    #initialize cutoff scores
+                    lo_cutoff = 0
+                    hi_cutoff = 1500
+                    
+                    scores = score_cutoff_by_length(str(s.seq),bin_scores)
+                    lo_cutoff = scores[0]
+                    hi_cutoff = scores[1]
+                    match_coord_start = 0
+                    match_coord_end = 0 
+                    match_len = 0
+                    missing_align = 0
+                    nonphys_overlap = 0
+                    f = 0
+                    if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] < hi_cutoff):
                         matched_seq_list.append(copied)
+                        aln_ct += 1
+                    else:
                         continue
                 else:
                     with open('temp_seq_PE.fa','w') as sh: #create temporary seq file, hopefully re-written each time
