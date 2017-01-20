@@ -483,7 +483,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     elif len(search_oligo) > 20: #sometimes the entire region aligns, so I truncate it to just 20 bases for higher chance of alignment in the event of a mismatch surviving score filtering
                         search_oligo = search_oligo[len(search_oligo)-12:]
                     #print('search oligo is '+str(len(search_oligo))+' bases long')
-                    bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
+                    bar1 = str(s.seq).find(search_oligo) #find the aligned region in the forward sequence
                     bar3  = re.search(str(Seq(search_oligo).reverse_complement()),str(pe_seqs[p_index].seq)) #find the aligned region's reverse complement in the actual PE sequence
                     bar4 = re.search(filt_seq,str(pe_seqs[p_index].seq)) # find the filt sequence's reverse complement (in this case the scar) in the actual PE
                     bar5 = re.search(search_oligo,pe_read_rev) 
