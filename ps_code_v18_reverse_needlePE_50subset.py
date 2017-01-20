@@ -498,11 +498,11 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         continue
                     f = quality_filter_single(pe_seqs[p_index][bar4.span()[1]:bar3.span()[0]],q_cutoff=20)
                     if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
-                        bar2 = re.search(filt_seq,pe_read_rev) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
+                        bar2 = pe_read_rev.find(filt_seq) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
                         if str(type(bar2)) == "<type 'NoneType'>":
                             raise ValueError('Transposon scar not found in paired-end read rev comp')
                         # print ("bar5.span()[1] is "+str(bar5.span()[1])+ " bar2.span()[0] is "+ str(bar2.span()[0]))
-                        pe_append = pe_read_rev[bar5.span()[1]:bar2.span()[0]] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
+                        pe_append = pe_read_rev[bar5.span()[1]:bar2.span()] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                         attempt_append += 1
                         temp_phred = s.letter_annotations.values()[0][0:bar1.span()[1]] #temporarily dump Phred quality scores into a list
                         temp_pe_phred = pe_seqs[p_index][bar4.span()[1]:bar3.span()[0]].letter_annotations.values()[0] #append phred quality scores of the region of interest to be appended
