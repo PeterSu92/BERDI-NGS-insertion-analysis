@@ -525,7 +525,11 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         continue
 
             print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
+            sys.stdout.flush()
             si = si + 1
+ 
+    # read_len_list = [f_list,pe_list]
+    print ("done.")
  
     # read_len_list = [f_list,pe_list]
     print ("")
