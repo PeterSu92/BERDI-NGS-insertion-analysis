@@ -422,9 +422,10 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
 
                 if filt_seq in str(s.seq): #if the scar is present in the forward read, proceed as with the perfect match
                     copied = copied_func(s)
-                    aln_ct += 1
-                    matched_seq_list.append(copied)
-                    continue
+                    if str(pe_seqs[p_index].reverse_complement().seq).find(str(copied.seq)):
+                        aln_ct += 1
+                        matched_seq_list.append(copied)
+                        continue
                 else:
                     with open('temp_seq_PE.fa','w') as sh: #create temporary seq file, hopefully re-written each time
                     #temp_f_seq = copied
