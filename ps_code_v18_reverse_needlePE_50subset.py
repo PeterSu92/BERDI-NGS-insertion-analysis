@@ -146,19 +146,19 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         # Now that only sequences containing BOTH the CS and the TR have been filtered for,
         # the paired-end matching can occur
         
-        s1 = filter_pe_mismatch(f_seqs3,pe_seqs3,gen_copied_seq_function(f_res),f_filt_seqs[2]) #right now using the scar
+        s1 = filter_pe_mismatch(f_seqs3[0:100],pe_seqs3[0:100],gen_copied_seq_function(f_res),f_filt_seqs[2]) #right now using the scar
         seqs = s1[0]
         with open('matched_seq_PE.fa','w') as sh: #create temporary seq file, hopefully re-written each time
                 #temp_f_seq = copied
              SeqIO.write(seqs,sh,'fastq')
-        # read_len_postalign_list = s1[1]
+        read_len_postalign_list = s1[1]
         print(str(len(seqs))+' forward reads have a paired-end match')
         
-        # with open('read_lengths_PE.csv','w') as file:
-        #     writer = csv.writer(file)
-        #     writer.writerow(["fwd reads","pe reads"])
-        #     writer.writerows(zip(s1[1][0],s1[1][1]))
-        #     file.close()
+        with open('read_lengths_PE.csv','w') as file:
+            writer = csv.writer(file)
+            writer.writerow(["pe_append","phred_len"])
+            writer.writerows(zip(s1[1][0],s1[1][1]))
+            file.close()
 
         seqs = quality_filter(seqs,q_cutoff=20)
         print(str(len(seqs))+' forward reads survived the Phred score quality filter')
@@ -387,6 +387,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     bad_quality_reads_first = 0 #number of paired-end reads whose region inbetween alignment and scar has too low of a quality score to pass
     bad_quality_reads_later = 0 #number of reads that fail the quality test after appending
     attempt_append = 0
+    mismatched_len = 0 #number of reads that search the read and its complement badly
     read_len_list = [] #list of read lengths regardless of whether or not they pass the alignment score filter
     co_ct = 0 #number of sequences with coordinate matches
     aln_ct = 0 #number of sequences with paired end sequence matches
@@ -508,6 +509,10 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         temp_phred = s.letter_annotations.values()[0][0:bar1.span()[1]] #temporarily dump Phred quality scores into a list
                         temp_pe_phred = pe_seqs[p_index][bar4.span()[1]:bar3.span()[0]].letter_annotations.values()[0] #append phred quality scores of the region of interest to be appended
                         temp_phred = temp_phred+temp_pe_phred
+                        if len(pe_append) != len(temp_pe_phred):
+                            mismatched_len += 1
+                            read_len_list.append([pe_append,temp_pe_phred])
+                            continue
                         # print(str(len(temp_pe_phred))+ ' Phred scores')
                         s.letter_annotations = {} #clear the letter annotations so that the sequence can be changed
                         s.seq = s.seq[0:bar1.span()[1]]+pe_append #return only the part of the forward read up to the end of the aligned region then plus the paired-end read up to the scar
@@ -525,12 +530,12 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         bad_quality_reads_first += 1
                         continue
 
-            print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
+            print sys.stdout.write  si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
             sys.stdout.flush()
             si = si + 1
  
     # read_len_list = [f_list,pe_list]
-    print ("done.")
+    print ("\n\done.")
  
     # read_len_list = [f_list,pe_list]
     print ("")
@@ -544,6 +549,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     print(str(nonphys_overlap)+' reads had part of the scar or some nonphysical overlap')
     print(str(bad_quality_reads_first)+ 'reads had poor quality in the region to be appended')
     print(str(bad_quality_reads_later)+' reads had overall poor quality in the final sequence')
+    print(str(mismatched_len)+ ' reads had different lengths of Phred scores to be appended and bases to be appended')
     print(str(attempt_append)+ ' reads started to be appended before perhaps failing in the added bases quality')
     print(str(append_ct)+ ' reads had appended parts from the paired-end read')
     return matched_seq_list,read_len_list
