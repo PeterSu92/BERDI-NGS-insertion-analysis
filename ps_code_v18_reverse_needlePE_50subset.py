@@ -157,7 +157,7 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         with open('read_lengths_PE.csv','w') as file:
             writer = csv.writer(file)
             writer.writerow(["pe_append","phred_len"])
-            writer.writerows(zip(s1[1][0],s1[1][1]))
+            writer.writerows(s1[1])
             file.close()
 
         seqs = quality_filter(seqs,q_cutoff=20)
@@ -530,7 +530,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         bad_quality_reads_first += 1
                         continue
 
-            print sys.stdout.write  si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
+            print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
             sys.stdout.flush()
             si = si + 1
  
