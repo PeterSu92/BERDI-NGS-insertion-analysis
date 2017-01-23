@@ -511,7 +511,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         temp_phred = temp_phred+temp_pe_phred
                         if len(pe_append) != len(temp_pe_phred):
                             mismatched_len += 1
-                            read_len_list.append([pe_append,temp_pe_phred])
+                            read_len_list.append([len(pe_append),len(temp_pe_phred)])
                             continue
                         # print(str(len(temp_pe_phred))+ ' Phred scores')
                         s.letter_annotations = {} #clear the letter annotations so that the sequence can be changed
