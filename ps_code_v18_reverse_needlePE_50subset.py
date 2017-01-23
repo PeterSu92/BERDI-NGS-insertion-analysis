@@ -407,13 +407,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 #isn't zero, so if the paired-end coordinates were found, the block below
                 # will be run
                 co_ct += 1 
-                 #Get part of the sequence that was actually copied 
-                # print('copied is type ',type(copied))
-                #temp_f_seq = copied
-                # f_list.append(len(s))
-
                 p_index = pe_coordL.index(get_coords(s))
-                # pe_list.append(len(pe_seqs[p_index]))
                 pe_read = pe_seqs[p_index].reverse_complement()
                 if len(s) > len(pe_read):
                     s = s[0:len(pe_read)]
@@ -432,8 +426,6 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     #temp_f_seq = copied
                         SeqIO.write(s,sh,'fastq')  
                     with open('temp_temp_PE.fa','w') as PE_seq_file:
-            # make temp sequence file for alignment, hopefully re-written every time
-                        #temp_seq = SeqRecord(Seq(template),id='template',name = 'template')
                         SeqIO.write(pe_read,PE_seq_file,'fasta')
 
                     needle_cline = NeedleCommandline(asequence='temp_seq_PE.fa', bsequence='temp_temp_PE.fa', gapopen=10,
@@ -444,7 +436,6 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     #initialize cutoff scores
                     lo_cutoff = 0
                     hi_cutoff = 1500
-                    
                     scores = score_cutoff_by_length(str(s.seq),bin_scores)
                     lo_cutoff = scores[0]
                     hi_cutoff = scores[1]
@@ -487,7 +478,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     #print('search oligo is '+str(len(search_oligo))+' bases long')
                     bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
                     bar3  = re.search(str(Seq(search_oligo).reverse_complement()),str(pe_seqs[p_index].seq)) #find the aligned region's reverse complement in the actual PE sequence
-                    bar4 = re.search(filt_seq,str(pe_seqs[p_index].seq)) # find the filt sequence's reverse complement (in this case the scar) in the actual PE
+                    bar4 = re.search(str(Seq(filt_seq).reverse_complement()),str(pe_seqs[p_index].seq)) # find the filt sequence's reverse complement (in this case the scar) in the actual PE
                     bar5 = re.search(search_oligo,pe_read_rev) 
                     if str(type(bar3)) == "<type 'NoneType'>" or str(type(bar1)) == "<type 'NoneType'>" : #in the event there was a mismatch in the search oligo, the regex search will fail. Skip this iteration for the time being
                         missing_align += 1
