@@ -311,7 +311,7 @@ def get_copied_seq(s,f_res):
             # Finds part of the template sequence by basically copying the read sequence inbetween barcode and common
             # sequence
             #return s[f_res[0].search(str(s.seq)).end():list(f_res[1].finditer(str(s.seq)))[-1].start()]
-            return s[f_res[0].search(str(s.seq)).start():list(f_res[2].finditer(str(s.seq)))[-1].start()]            
+            return s[f_res[2].search(str(s.seq)).end():list(f_res[1].finditer(str(s.seq)))[-1].end()]            
             # Indices will vary! Must find the sequence in between the f_res sequences
             # Don't understand finditer super well
 # def get_copied_seq_half(s,f_res):
