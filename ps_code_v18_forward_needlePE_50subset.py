@@ -383,9 +383,10 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     missing_filt_seq = 0 #number of forward reads missing the back filter sequence
     missing_pe_filt_seq = 0 #number of PE reads missing the scar (shouldn't happen?)
     too_small_chunk = 0 #number of forward reads that had too small of a chunk to be kept
-    bad_quality_reads_first = 0 #number of paired-end reads whose region inbetween alignment and scar has too low of a quality score to pass
-    bad_quality_reads_later = 0 #number of reads that fail the quality test after appending
-    attempt_append = 0
+    full_align = 0 #number of reads where the last base of the forward read aligned to the PE read
+    # bad_quality_reads_first = 0 #number of paired-end reads whose region inbetween alignment and scar has too low of a quality score to pass
+    # bad_quality_reads_later = 0 #number of reads that fail the quality test after appending
+    # attempt_append = 0
     read_len_list = [] #list of read lengths regardless of whether or not they pass the alignment score filter
     co_ct = 0 #number of sequences with coordinate matches
     aln_ct = 0 #number of sequences with paired end sequence matches
@@ -472,6 +473,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     match_len = 0
                     missing_align = 0
                     # nonphys_overlap = 0
+
                     f = 0
                     if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] <= hi_cutoff):
                         aln_ct += 1
@@ -508,8 +510,9 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         missing_align += 1
                         continue
                     elif bar1.span()[1] > len(s.seq):
-
                          raise ValueError('End coordinate is '+str(bar1.span()[1])+' but sequence is '+str(len(s.seq)))
+                    elif bar1.span()[1] = len(s.seq):
+                        full_align += 1
                         # print ("bar5.span()[1] is "+str(bar5.span()[1])+ " bar2.span()[0] is "+ str(bar2.span()[0]))
                         # pe_append = pe_read_rev[bar5.span()[1]:bar2] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                         # attempt_append += 1
@@ -552,11 +555,12 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     # print(str(missing_pe_filt_seq)+ 'paired-end reads are missing the scar!!!!')
     print(str(missing_align)+ ' reads did not have a perfect aligned region')
     print(str(too_small_chunk)+ ' reads had too small of an aligned region')
-    print(str(nonphys_overlap)+' reads had part of the scar or some nonphysical overlap')
-    print(str(bad_quality_reads_first)+ 'reads had poor quality in the region to be appended')
-    print(str(bad_quality_reads_later)+' reads had overall poor quality in the final sequence')
-    print(str(attempt_append)+ ' reads started to be appended before perhaps failing in the added bases quality')
-    print(str(append_ct)+ ' reads had appended parts from the paired-end read')
+    print(str(full_align)+ ' forward reads matched all the way to the last base')
+    # print(str(nonphys_overlap)+' reads had part of the scar or some nonphysical overlap')
+    # print(str(bad_quality_reads_first)+ 'reads had poor quality in the region to be appended')
+    # print(str(bad_quality_reads_later)+' reads had overall poor quality in the final sequence')
+    # print(str(attempt_append)+ ' reads started to be appended before perhaps failing in the added bases quality')
+    # print(str(append_ct)+ ' reads had appended parts from the paired-end read')
     return matched_seq_list
     
 #Insertion site functions and code
