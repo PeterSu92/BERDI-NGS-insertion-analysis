@@ -146,8 +146,7 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         # Now that only sequences containing BOTH the CS and the TR have been filtered for,
         # the paired-end matching can occur
         
-        s1 = filter_pe_mismatch(f_seqs3,pe_seqs3,gen_copied_seq_function(f_res),f_filt_seqs[1]) #forward reads use the MBP reverse primer here
-        seqs = s1[0]
+        seqs = filter_pe_mismatch(f_seqs3,pe_seqs3,gen_copied_seq_function(f_res),f_filt_seqs[1]) #forward reads use the MBP reverse primer here
         with open('matched_seq_PE.fa','w') as sh: #create temporary seq file, hopefully re-written each time
                 #temp_f_seq = copied
              SeqIO.write(seqs,sh,'fastq')
@@ -556,7 +555,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     print(str(bad_quality_reads_later)+' reads had overall poor quality in the final sequence')
     print(str(attempt_append)+ ' reads started to be appended before perhaps failing in the added bases quality')
     print(str(append_ct)+ ' reads had appended parts from the paired-end read')
-    return matched_seq_list,read_len_list
+    return matched_seq_list
     
 #Insertion site functions and code
 def insertion_chunks(final_seqs):
