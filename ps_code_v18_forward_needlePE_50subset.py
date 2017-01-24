@@ -423,11 +423,8 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 if filt_seq in str(s.seq): #if the scar is present in the forward read, proceed as with the perfect match
                     copied = copied_func(s)
                     with open('temp_seq_PE.fa','w') as sh: #create temporary seq file, hopefully re-written each time
-                    #temp_f_seq = copied
                         SeqIO.write(copied,sh,'fastq')  
                     with open('temp_temp_PE.fa','w') as PE_seq_file:
-            # make temp sequence file for alignment, hopefully re-written every time
-                        #temp_seq = SeqRecord(Seq(template),id='template',name = 'template')
                         SeqIO.write(pe_read,PE_seq_file,'fasta')
 
                     needle_cline = NeedleCommandline(asequence='temp_seq_PE.fa', bsequence='temp_temp_PE.fa', gapopen=10,
@@ -448,18 +445,15 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     missing_align = 0
                     nonphys_overlap = 0
                     f = 0
-                    if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] < hi_cutoff):
+                    if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] <= hi_cutoff):
                         matched_seq_list.append(copied)
                         aln_ct += 1
                     else:
                         continue
                 else:
-                    with open('temp_seq_PE.fa','w') as sh: #create temporary seq file, hopefully re-written each time
-                    #temp_f_seq = copied
+                    with open('temp_seq_PE.fa','w') as sh: 
                         SeqIO.write(s,sh,'fastq')  
                     with open('temp_temp_PE.fa','w') as PE_seq_file:
-            # make temp sequence file for alignment, hopefully re-written every time
-                        #temp_seq = SeqRecord(Seq(template),id='template',name = 'template')
                         SeqIO.write(pe_read,PE_seq_file,'fasta')
 
                     needle_cline = NeedleCommandline(asequence='temp_seq_PE.fa', bsequence='temp_temp_PE.fa', gapopen=10,
@@ -494,18 +488,14 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         match_coord_start = len(aln_data[0][1].seq)-bar.span()[1]
                         match_coord_end = len(aln_data[0][1].seq)-bar_f.span()[0]
                         match_len = bar.span()[1]-bar_f.span()[0] #want the match length to go from the start of the first aligned base in the foward read to the last aligned base in the reverse read
-                        # if match_len < 0: #it is possible the forward read finds a small chunk 
-                        #     too_small_chunk += 1
-                        #     continue
                     else: #should never encouer scenario where the reverse complement of the PE read goes longer until it hits an aligned base
                         match_coord_start = len(aln_data[0][1].seq)-bar.span()[1] #since search is backwards, subtract index of last base from overall length.
                         match_coord_end = len(aln_data[0][1].seq)-bar.span()[0]
                     #print("PE read is "+str(len(pe_read))+" long")
-  
-                    # match_coord_end = match_coord_start+match_len
+
                     pe_read_rev = str(pe_seqs[p_index].reverse_complement().seq)
                     search_oligo = str(aln_data[0][1].seq)[match_coord_start:match_coord_end] #coordinates are currently still based off the alignment alone
-                    if len(search_oligo) < 12:
+                    if len(search_oligo) < 12: # this number is arbitrary right now
                         too_small_chunk += 1
                         continue
                     elif len(search_oligo) > 20: #sometimes the entire region aligns, so I truncate it to just 20 bases for higher chance of alignment in the event of a mismatch surviving score filtering
@@ -513,7 +503,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     #print('search oligo is '+str(len(search_oligo))+' bases long')
                     bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
                     bar3  = re.search(str(Seq(search_oligo).reverse_complement()),str(pe_seqs[p_index].seq)) #find the aligned region's reverse complement in the actual PE sequence
-                    bar4 = re.search(str(Seq(filt_seq)),str(pe_seqs[p_index].seq)) # find the filt sequence's reverse complement (in this case the scar) in the actual PE
+                    bar4 = re.search(str(Seq(filt_seq).reverse_complement()),str(pe_seqs[p_index].seq)) # find the filt sequence's reverse complement (in this case the MBP reverse primer) in the actual PE
                     bar5 = re.search(search_oligo,pe_read_rev) 
                     if str(type(bar3)) == "<type 'NoneType'>" or str(type(bar1)) == "<type 'NoneType'>" : #in the event there was a mismatch in the search oligo, the regex search will fail. Skip this iteration for the time being
                         missing_align += 1
@@ -524,7 +514,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     elif bar4.span()[1] > bar3.span()[0]: # if some alignment happens such that part of the transposon scar aligns, this is messy and not worth dealing with
                         nonphys_overlap += 1
                         continue
-                    f = quality_filter_single(pe_seqs[p_index][bar4.span()[1]:bar3.span()[0]],q_cutoff=20)
+                    f = quality_filter_single(pe_seqs[p_index][bar4.span()[0]:bar3.span()[0]],q_cutoff=20)
                     if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
                         bar2 = pe_read_rev.find(filt_seq) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
                         if str(type(bar2)) == "<type 'NoneType'>":
