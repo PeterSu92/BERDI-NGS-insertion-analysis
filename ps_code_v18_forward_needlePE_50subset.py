@@ -513,7 +513,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         # print ("bar5.span()[1] is "+str(bar5.span()[1])+ " bar2.span()[0] is "+ str(bar2.span()[0]))
                         # pe_append = pe_read_rev[bar5.span()[1]:bar2] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                         # attempt_append += 1
-                        # temp_phred = s.letter_annotations.values()[0][0:bar1.span()[1]] #temporarily dump Phred quality scores into a list
+                    temp_phred = s.letter_annotations.values()[0][0:bar1.span()[1]] #temporarily dump Phred quality scores into a list
                         # temp_pe_phred = pe_seqs[p_index][bar4.span()[1]:bar3.span()[0]].letter_annotations.values()[0] #append phred quality scores of the region of interest to be appended
                         # temp_phred = temp_phred+temp_pe_phred
                         # if len(pe_append) != len(temp_pe_phred):
@@ -521,9 +521,9 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         #     read_len_list.append([len(pe_append),len(temp_pe_phred)])
                         #     continue
                         # print(str(len(temp_pe_phred))+ ' Phred scores')
-                        # s.letter_annotations = {} #clear the letter annotations so that the sequence can be changed
+                    s.letter_annotations = {} #clear the letter annotations so that the sequence can be changed
                     s.seq = s.seq[0:bar1.span()[1]] #return only the part of the forward read up to the end of the aligned region. This way, no junk gets kept in the case of a short read
-                        # s.letter_annotations = {'phred_quality':temp_phred} #now put back the new phred quality score list
+                    s.letter_annotations = {'phred_quality':temp_phred} #now put back the new phred quality score list
                         # new_qual = quality_filter_single(s,q_cutoff=20)
                         # if new_qual > 0:
                     matched_seq_list.append(s)
