@@ -257,7 +257,7 @@ def cull_alignments(aln_data, lo_cutoff, hi_cutoff):
         """
         new_seqs = []
         for alignment in aln_data:
-            if (alignment.annotations['score'] >= lo_cutoff) and (alignment.annotations['score'] < hi_cutoff):
+            if (alignment.annotations['score'] >= lo_cutoff) and (alignment.annotations['score'] <= hi_cutoff):
                         #Template should have no gaps and should contain the whole
                         # non-template sequence
                             joined_align = [r for r,t in zip(alignment[1],alignment[0]) if t != '-']
@@ -469,12 +469,12 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     lo_cutoff = scores[0]
                     hi_cutoff = scores[1]
                     match_coord_start = 0
-                    match_coord_end = 0 
+                    # match_coord_end = 0 
                     match_len = 0
                     missing_align = 0
-                    nonphys_overlap = 0
+                    # nonphys_overlap = 0
                     f = 0
-                    if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] < hi_cutoff):
+                    if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] <= hi_cutoff):
                         aln_ct += 1
                     else:
                         continue
@@ -484,67 +484,56 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     missing_filt_seq +=1
                     bar = re.search('[AGCT]+',str(aln_data[0][1].seq)[-1:0:-1]) #search backwards through reverse complement of PE read, find first base that aligned.
                     bar_f = re.search('[AGCT]+',str(aln_data[0][0].seq)[-1:0:-1]) # search backwards through fwd read to find the first base that aligned
-                    if bar.span()[0] < bar_f.span()[0]: #this is if the fwd strand search goes longer until it hits an aligned base
-                        match_coord_start = len(aln_data[0][1].seq)-bar.span()[1]
-                        match_coord_end = len(aln_data[0][1].seq)-bar_f.span()[0]
-                        match_len = bar.span()[1]-bar_f.span()[0] #want the match length to go from the start of the first aligned base in the foward read to the last aligned base in the reverse read
-                    else: #should never encouer scenario where the reverse complement of the PE read goes longer until it hits an aligned base
-                        match_coord_start = len(aln_data[0][1].seq)-bar.span()[1] #since search is backwards, subtract index of last base from overall length.
-                        match_coord_end = len(aln_data[0][1].seq)-bar.span()[0]
+                    # if bar.span()[0] < bar_f.span()[0]: #this is if the fwd strand search goes longer until it hits an aligned base
+                    match_coord_start = len(aln_data[0][0].seq)-bar.span()[1] #coordinates start from the first base of the forward read that aligned with the paired end read
+                    match_coord_end = len(aln_data[0][0].seq)-bar_f.span()[0]# coordinates end at the last aligned base in the forward read such that no bases present on the PE read but not fwd make it
+                    # match_len = bar.span()[1]-bar_f.span()[0] #want the match length to go from the start of the first aligned base in the foward read to the last aligned base in the reverse read
+                    # else: #should never encouer scenario where the reverse complement of the PE read goes longer until it hits an aligned base
+                    #     match_coord_start = len(aln_data[0][1].seq)-bar.span()[1] #since search is backwards, subtract index of last base from overall length.
+                    #     match_coord_end = len(aln_data[0][1].seq)-bar.span()[0]
                     #print("PE read is "+str(len(pe_read))+" long")
 
-                    pe_read_rev = str(pe_seqs[p_index].reverse_complement().seq)
-                    search_oligo = str(aln_data[0][1].seq)[match_coord_start:match_coord_end] #coordinates are currently still based off the alignment alone
+                    # pe_read_rev = str(pe_seqs[p_index].reverse_complement().seq)
+                    search_oligo = str(aln_data[0][0].seq)[match_coord_start:match_coord_end] #coordinates are currently still based off the alignment alone; search oligo is only on forward base now
                     if len(search_oligo) < 12: # this number is arbitrary right now
                         too_small_chunk += 1
                         continue
-                    elif len(search_oligo) > 20: #sometimes the entire region aligns, so I truncate it to just 20 bases for higher chance of alignment in the event of a mismatch surviving score filtering
-                        search_oligo = search_oligo[len(search_oligo)-12:]
-                    #print('search oligo is '+str(len(search_oligo))+' bases long')
+                    # elif len(search_oligo) > 20: #sometimes the entire region aligns, so I truncate it to just 20 bases for higher chance of alignment in the event of a mismatch surviving score filtering
+                    #     search_oligo = search_oligo[len(search_oligo)-12:]
+
                     bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
-                    bar3  = re.search(str(Seq(search_oligo).reverse_complement()),str(pe_seqs[p_index].seq)) #find the aligned region's reverse complement in the actual PE sequence
-                    bar4 = re.search(str(Seq(filt_seq).reverse_complement()),str(pe_seqs[p_index].seq)) # find the filt sequence's reverse complement (in this case the MBP reverse primer) in the actual PE
-                    bar5 = re.search(search_oligo,pe_read_rev) 
-                    if str(type(bar3)) == "<type 'NoneType'>" or str(type(bar1)) == "<type 'NoneType'>" : #in the event there was a mismatch in the search oligo, the regex search will fail. Skip this iteration for the time being
+                    # f = quality_filter_single(pe_seqs[p_index][bar4.span()[0]:bar3.span()[0]],q_cutoff=20)
+                    # if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
+                    #     bar2 = pe_read_rev.find(filt_seq) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
+                    if str(type(bar1)) == "<type 'NoneType'>": #if the aligned region can't be found in the forward read
                         missing_align += 1
                         continue
-                    elif str(type(bar4)) == "<type 'NoneType'>":
-                        missing_pe_filt_seq += 1
-                        continue
-                    elif bar4.span()[1] > bar3.span()[0]: # if some alignment happens such that part of the transposon scar aligns, this is messy and not worth dealing with
-                        nonphys_overlap += 1
-                        continue
-                    f = quality_filter_single(pe_seqs[p_index][bar4.span()[0]:bar3.span()[0]],q_cutoff=20)
-                    if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
-                        bar2 = pe_read_rev.find(filt_seq) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
-                        if str(type(bar2)) == "<type 'NoneType'>":
-                            raise ValueError('Transposon scar not found in paired-end read rev comp')
+                    #         raise ValueError('Transposon scar not found in paired-end read rev comp')
                         # print ("bar5.span()[1] is "+str(bar5.span()[1])+ " bar2.span()[0] is "+ str(bar2.span()[0]))
-                        pe_append = pe_read_rev[bar5.span()[1]:bar2] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
-                        attempt_append += 1
-                        temp_phred = s.letter_annotations.values()[0][0:bar1.span()[1]] #temporarily dump Phred quality scores into a list
-                        temp_pe_phred = pe_seqs[p_index][bar4.span()[1]:bar3.span()[0]].letter_annotations.values()[0] #append phred quality scores of the region of interest to be appended
-                        temp_phred = temp_phred+temp_pe_phred
-                        if len(pe_append) != len(temp_pe_phred):
-                            mismatched_len += 1
-                            read_len_list.append([len(pe_append),len(temp_pe_phred)])
-                            continue
-                        print(str(len(temp_pe_phred))+ ' Phred scores')
-                        s.letter_annotations = {} #clear the letter annotations so that the sequence can be changed
-                        s.seq = s.seq[0:bar1.span()[1]]+pe_append #return only the part of the forward read up to the end of the aligned region then plus the paired-end read up to the scar
-                        print('appended portion is '+str(len(pe_append))+ ' long')
-                        s.letter_annotations = {'phred_quality':temp_phred} #now put back the new phred quality score list
-                        new_qual = quality_filter_single(s,q_cutoff=20)
-                        if new_qual > 0:
-                            matched_seq_list.append(s)
-                            append_ct += 1 
-                        else:
-                            bad_quality_reads_later +=1
-                            continue
+                        # pe_append = pe_read_rev[bar5.span()[1]:bar2] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
+                        # attempt_append += 1
+                        # temp_phred = s.letter_annotations.values()[0][0:bar1.span()[1]] #temporarily dump Phred quality scores into a list
+                        # temp_pe_phred = pe_seqs[p_index][bar4.span()[1]:bar3.span()[0]].letter_annotations.values()[0] #append phred quality scores of the region of interest to be appended
+                        # temp_phred = temp_phred+temp_pe_phred
+                        # if len(pe_append) != len(temp_pe_phred):
+                        #     mismatched_len += 1
+                        #     read_len_list.append([len(pe_append),len(temp_pe_phred)])
+                        #     continue
+                        # print(str(len(temp_pe_phred))+ ' Phred scores')
+                        # s.letter_annotations = {} #clear the letter annotations so that the sequence can be changed
+                    s.seq = s.seq[0:bar1.span()[1]] #return only the part of the forward read up to the end of the aligned region. This way, no junk gets kept in the case of a short read
+                        # s.letter_annotations = {'phred_quality':temp_phred} #now put back the new phred quality score list
+                        # new_qual = quality_filter_single(s,q_cutoff=20)
+                        # if new_qual > 0:
+                    matched_seq_list.append(s)
+                        #     append_ct += 1 
+                        # else:
+                        #     bad_quality_reads_later +=1
+                        #     continue
 
-                    else:
-                        bad_quality_reads_first += 1
-                        continue
+                    # else:
+                    #     bad_quality_reads_first += 1
+                    #     continue
 
             print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
             sys.stdout.flush()
@@ -559,7 +548,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches
     print(str(co_ct)+' forward reads had the coordinates of the PE read nearby')
     print(str(missing_filt_seq)+' reads were missing the scar')
-    print(str(missing_pe_filt_seq)+ 'paired-end reads are missing the scar!!!!')
+    # print(str(missing_pe_filt_seq)+ 'paired-end reads are missing the scar!!!!')
     print(str(missing_align)+ ' reads did not have a perfect aligned region')
     print(str(too_small_chunk)+ ' reads had too small of an aligned region')
     print(str(nonphys_overlap)+' reads had part of the scar or some nonphysical overlap')
