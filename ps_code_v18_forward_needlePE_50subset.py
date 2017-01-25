@@ -435,8 +435,12 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     #initialize cutoff scores
                     lo_cutoff = 0
                     hi_cutoff = 1500
-                    
-                    scores = score_cutoff_by_length(str(s.seq),bin_scores)
+                    cond_bar = re.search('[AGCT]+',str(aln_data[0][1].seq)[-1:0:-1]) #search backwards through reverse complement of PE read, find first base that aligned.
+                    cond_bar_f = re.search('[AGCT]+',str(aln_data[0][0].seq)[-1:0:-1])
+                    cond_match_coord_start = len(aln_data[0][0].seq)-cond_bar.span()[1] #coordinates start from the first base of the forward read that aligned with the paired end read
+                    cond_match_coord_end = len(aln_data[0][0].seq)-cond_bar_f.span()[0]
+                    cond_search_oligo = str(aln_data[0][0].seq)[cond_match_coord_start:cond_match_coord_end]
+                    scores = score_cutoff_by_length(cond_search_oligo,bin_scores)
                     lo_cutoff = scores[0]
                     hi_cutoff = scores[1]
                     match_coord_start = 0
@@ -464,23 +468,6 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     #initialize cutoff scores
                     lo_cutoff = 0
                     hi_cutoff = 1500
-                    
-                    scores = score_cutoff_by_length(str(s.seq),bin_scores)
-                    lo_cutoff = scores[0]
-                    hi_cutoff = scores[1]
-                    match_coord_start = 0
-                    # match_coord_end = 0 
-                    match_len = 0
-                    missing_align = 0
-                    # nonphys_overlap = 0
-
-                    f = 0
-                    if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] <= hi_cutoff):
-                        aln_ct += 1
-                    else:
-                        continue
-
-
                     #if the scar isn't found on the forward read
                     missing_filt_seq +=1
                     bar = re.search('[AGCT]+',str(aln_data[0][1].seq)[-1:0:-1]) #search backwards through reverse complement of PE read, find first base that aligned.
@@ -496,7 +483,14 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
 
                     # pe_read_rev = str(pe_seqs[p_index].reverse_complement().seq)
                     search_oligo = str(aln_data[0][0].seq)[match_coord_start:match_coord_end] #coordinates are currently still based off the alignment alone; search oligo is only on forward base now
-                    if len(search_oligo) < 12: # this number is arbitrary right now
+                    scores = score_cutoff_by_length(cond_search_oligo,bin_scores)
+                    lo_cutoff = scores[0]
+                    hi_cutoff = scores[1]
+                    if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] <= hi_cutoff):
+                        aln_ct += 1
+                    else:
+                        continue
+                    elif len(search_oligo) < 12: # this number is arbitrary right now
                         too_small_chunk += 1
                         continue
                     # elif len(search_oligo) > 20: #sometimes the entire region aligns, so I truncate it to just 20 bases for higher chance of alignment in the event of a mismatch surviving score filtering
@@ -511,7 +505,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         continue
                     elif bar1.span()[1] > len(s.seq):
                          raise ValueError('End coordinate is '+str(bar1.span()[1])+' but sequence is '+str(len(s.seq)))
-                    elif bar1.span()[1] = len(s.seq):
+                    elif bar1.span()[1] == len(s.seq):
                         full_align += 1
                         # print ("bar5.span()[1] is "+str(bar5.span()[1])+ " bar2.span()[0] is "+ str(bar2.span()[0]))
                         # pe_append = pe_read_rev[bar5.span()[1]:bar2] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
@@ -530,14 +524,6 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         # new_qual = quality_filter_single(s,q_cutoff=20)
                         # if new_qual > 0:
                     matched_seq_list.append(s)
-                        #     append_ct += 1 
-                        # else:
-                        #     bad_quality_reads_later +=1
-                        #     continue
-
-                    # else:
-                    #     bad_quality_reads_first += 1
-                    #     continue
 
             print si, " ", format(si/float(len(f_seqs))*100.0, '.2f'),"% percent complete            \r",
             sys.stdout.flush()
