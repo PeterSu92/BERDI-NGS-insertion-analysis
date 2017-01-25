@@ -421,7 +421,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         aln_ct += 1
                         matched_seq_list.append(copied)
                         continue
-                else:
+                else: #if the scar isn't present in the forward read, start an appending process
                     with open('temp_seq_PE.fa','w') as sh: #create temporary seq file, hopefully re-written each time
                     #temp_f_seq = copied
                         SeqIO.write(s,sh,'fastq')  
@@ -436,19 +436,6 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     #initialize cutoff scores
                     lo_cutoff = 0
                     hi_cutoff = 1500
-                    scores = score_cutoff_by_length(str(s.seq),bin_scores)
-                    lo_cutoff = scores[0]
-                    hi_cutoff = scores[1]
-                    match_coord_start = 0
-                    match_coord_end = 0 
-                    match_len = 0
-                    missing_align = 0
-                    nonphys_overlap = 0
-                    f = 0
-                    if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] < hi_cutoff):
-                        aln_ct += 1
-                    else:
-                        continue
 
 
                     #if the scar isn't found on the forward read
@@ -470,6 +457,19 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     # match_coord_end = match_coord_start+match_len
                     pe_read_rev = str(pe_seqs[p_index].reverse_complement().seq)
                     search_oligo = str(aln_data[0][1].seq)[match_coord_start:match_coord_end] #coordinates are currently still based off the alignment alone
+                    scores = score_cutoff_by_length(search_oligo,bin_scores)
+                    lo_cutoff = scores[0]
+                    hi_cutoff = scores[1]
+                    match_coord_start = 0
+                    match_coord_end = 0 
+                    match_len = 0
+                    missing_align = 0
+                    nonphys_overlap = 0
+                    f = 0
+                    if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] <= hi_cutoff):
+                        aln_ct += 1
+                    else:
+                        continue
                     if len(search_oligo) < 12:
                         too_small_chunk += 1
                         continue
