@@ -128,12 +128,6 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         print('Forward reads:'+str(len(f_seqs2[0]))+',',str(len(f_seqs2[1]))+',',str(len(f_seqs2[2])))
         print('PE reads:'+str(len(pe_seqs2[0]))+',',str(len(pe_seqs2[1]))+',',str(len(pe_seqs2[2])))
         #At this point, both f_seqs2 and pe_seqs2 will be a list of lists.
-        #The outermost list will be the size of f_filt_seqs (same as r_filt_seqs)
-        #The inner lists ought to contain the SeqRecord reads that had that particular
-        #sequence we were searching for (i.e. CS or TR). The f_seqs2 list will contain one of the CS's,
-        #while the pe_seqs2 will contain the other (so indices will be messed up until I figure out which
-        #read consistently has which CS). TLDR take indices in this next part with a grain of salt, and it's
-        #overall kind of clunky. 
 
         f_seqs3 = f_seqs2[0]
 
@@ -404,22 +398,49 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     for s in f_seqs:
             if pe_coordL.count(get_coords(s)):
                 #Apparently the above line returns a boolean so long as the count
-                #isn't zero, so if the paired-end coordinates were found, the block below
-                # will be run
+                #isn't zero, so if the paired-end coordinates were found, the block below will be run
                 co_ct += 1 
                 p_index = pe_coordL.index(get_coords(s))
                 pe_read = pe_seqs[p_index].reverse_complement()
+                #next set of conditionals ensures the forward and paired-end reads are the same length and shaves off bases accordingly if necessary
                 if len(s) > len(pe_read):
                     s = s[0:len(pe_read)]
                 elif len(s) < len(pe_read):
                     pe_seqs[p_index] = pe_seqs[p_index][0:len(s)]  
                     pe_read = pe_seqs[p_index].reverse_complement()     
-
                 if filt_seq in str(s.seq): #if the scar is present in the forward read, proceed as with the perfect match
                     copied = copied_func(s)
-                    if str(pe_seqs[p_index].reverse_complement().seq).find(str(copied.seq)):
-                        aln_ct += 1
+                    with open('temp_seq_PE.fa','w') as sh: #create temporary seq file, hopefully re-written each time
+                        SeqIO.write(copied,sh,'fastq')  
+                    with open('temp_temp_PE.fa','w') as PE_seq_file:
+                        SeqIO.write(pe_read,PE_seq_file,'fasta')
+
+                    needle_cline = NeedleCommandline(asequence='temp_seq_PE.fa', bsequence='temp_temp_PE.fa', gapopen=10,
+                                                     gapextend=0.5, outfile='PE.needle') #hopefully only one needle file gets made
+                    needle_cline()
+                    aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
+                    bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500]] #same bin cutoff scores as alignment
+                    #initialize cutoff scores
+                    lo_cutoff = 0
+                    hi_cutoff = 1500
+                    cond_bar = re.search('[AGCT]+',str(aln_data[0][1].seq)[-1:0:-1]) #search backwards through reverse complement of PE read, find first base that aligned.
+                    cond_bar_f = re.search('[AGCT]+',str(aln_data[0][0].seq)[-1:0:-1])
+                    cond_match_coord_start = len(aln_data[0][0].seq)-cond_bar.span()[1] #coordinates start from the first base of the forward read that aligned with the paired end read
+                    cond_match_coord_end = len(aln_data[0][0].seq)-cond_bar_f.span()[0]
+                    cond_search_oligo = str(aln_data[0][0].seq)[cond_match_coord_start:cond_match_coord_end]
+                    scores = score_cutoff_by_length(cond_search_oligo,bin_scores)
+                    lo_cutoff = scores[0]
+                    hi_cutoff = scores[1]
+                    match_coord_start = 0
+                    match_coord_end = 0 
+                    match_len = 0
+                    missing_align = 0
+                    nonphys_overlap = 0
+                    f = 0
+                    if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] <= hi_cutoff):
                         matched_seq_list.append(copied)
+                        aln_ct += 1
+                    else:
                         continue
                 else: #if the scar isn't present in the forward read, start an appending process
                     with open('temp_seq_PE.fa','w') as sh: #create temporary seq file, hopefully re-written each time
