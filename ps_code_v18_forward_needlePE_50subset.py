@@ -407,12 +407,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 # will be run
                 co_ct += 1 
                  #Get part of the sequence that was actually copied 
-                # print('copied is type ',type(copied))
-                #temp_f_seq = copied
-                # f_list.append(len(s))
-
                 p_index = pe_coordL.index(get_coords(s))
-                # pe_list.append(len(pe_seqs[p_index]))
                 pe_read = pe_seqs[p_index].reverse_complement()
                 if len(s) > len(pe_read):
                     s = s[0:len(pe_read)]
@@ -435,9 +430,9 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     #initialize cutoff scores
                     lo_cutoff = 0
                     hi_cutoff = 1500
-                    cond_bar = re.search('[AGCT]+',str(aln_data[0][1].seq)[-1:0:-1]) #search backwards through reverse complement of PE read, find first base that aligned.
-                    cond_bar_f = re.search('[AGCT]+',str(aln_data[0][0].seq)[-1:0:-1])
-                    cond_match_coord_start = len(aln_data[0][0].seq)-cond_bar.span()[1] #coordinates start from the first base of the forward read that aligned with the paired end read
+                    cond_bar = re.search('[AGCT]+',str(aln_data[0][1].seq)) #search forwards through reverse complement of PE read, find first base that aligned.
+                    cond_bar_f = re.search('[AGCT]+',str(aln_data[0][0].seq)[-1:0:-1]) #search backwards through forward read, find first base that aligned
+                    cond_match_coord_start = cond_bar.span()[0] #coordinates start from the first base of the forward read that aligned with the paired end read
                     cond_match_coord_end = len(aln_data[0][0].seq)-cond_bar_f.span()[0]
                     cond_search_oligo = str(aln_data[0][0].seq)[cond_match_coord_start:cond_match_coord_end]
                     scores = score_cutoff_by_length(cond_search_oligo,bin_scores)
