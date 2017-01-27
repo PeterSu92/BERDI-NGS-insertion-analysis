@@ -438,7 +438,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     nonphys_overlap = 0
                     f = 0
                     if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] <= hi_cutoff):
-                        matched_seq_list.append(copied)
+                        copied_list.append(copied)
                         aln_ct += 1
                     else:
                         continue
@@ -513,7 +513,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     f = quality_filter_single(pe_seqs[p_index][bar4.span()[1]:bar3.span()[0]],q_cutoff=20)
                     if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
                         bar2 = pe_read_rev.find(filt_seq) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
-                        if str(type(bar2)) == "<type 'NoneType'>":
+                        if bar2 == -1:
                             raise ValueError('Transposon scar not found in paired-end read rev comp')
                         # print ("bar5.span()[1] is "+str(bar5.span()[1])+ " bar2.span()[0] is "+ str(bar2.span()[0]))
                         pe_append = pe_read_rev[bar5.span()[1]:bar2] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
@@ -564,7 +564,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     print(str(mismatched_len)+ ' reads had different lengths of Phred scores to be appended and bases to be appended')
     print(str(attempt_append)+ ' reads started to be appended before perhaps failing in the added bases quality')
     print(str(append_ct)+ ' reads had appended parts from the paired-end read')
-    return matched_seq_list,read_len_list
+    return matched_seq_list,read_len_list,copied_list
     
 #Insertion site functions and code
 def insertion_chunks(final_seqs):
