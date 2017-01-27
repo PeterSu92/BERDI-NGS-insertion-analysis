@@ -387,6 +387,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     # bad_quality_reads_first = 0 #number of paired-end reads whose region inbetween alignment and scar has too low of a quality score to pass
     # bad_quality_reads_later = 0 #number of reads that fail the quality test after appending
     # attempt_append = 0
+    copied_too_short = 0 # if for some reason the copied region is less than the length of the smallest primer
     read_len_list = [] #list of read lengths regardless of whether or not they pass the alignment score filter
     co_ct = 0 #number of sequences with coordinate matches
     aln_ct = 0 #number of sequences with paired end sequence matches
@@ -417,6 +418,9 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
 
                 if filt_seq in str(s.seq): #if the scar is present in the forward read, proceed as with the perfect match
                     copied = copied_func(s)
+                    if len(copied) < 19:
+                        copied_too_short +=1
+                        continue
                     with open('temp_seq_PE.fa','w') as sh: #create temporary seq file, hopefully re-written each time
                         SeqIO.write(copied,sh,'fastq')  
                     with open('temp_temp_PE.fa','w') as PE_seq_file:
