@@ -436,7 +436,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     nonphys_overlap = 0
                     f = 0
                     if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] <= hi_cutoff):
-                        copied_list.append(copied)
+                        matched_seq_list.append(copied)
                         aln_ct += 1
                     else:
                         continue
@@ -556,7 +556,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     print(str(mismatched_len)+ ' reads had different lengths of Phred scores to be appended and bases to be appended')
     print(str(attempt_append)+ ' reads started to be appended before perhaps failing in the added bases quality')
     print(str(append_ct)+ ' reads had appended parts from the paired-end read')
-    return matched_seq_list,read_len_list,copied_list
+    return matched_seq_list,read_len_list
     
 #Insertion site functions and code
 def insertion_chunks(final_seqs):
