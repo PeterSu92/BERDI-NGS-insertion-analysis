@@ -130,9 +130,7 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         #At this point, both f_seqs2 and pe_seqs2 will be a list of lists.
 
         f_seqs3 = f_seqs2[0]
-
         # Repeat for paired-end reads
-
         pe_seqs3 = pe_seqs2[2]
 
         print(str(len(f_seqs3))+' forward reads have the sequence of interest (MBP forward primer)')
@@ -450,15 +448,13 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         SeqIO.write(pe_read,PE_seq_file,'fasta')
 
                     needle_cline = NeedleCommandline(asequence='temp_seq_PE.fa', bsequence='temp_temp_PE.fa', gapopen=10,
-                                                     gapextend=2, outfile='PE.needle') #hopefully only one needle file gets made
+                                                     gapextend=0.5, outfile='PE.needle') #hopefully only one needle file gets made
                     needle_cline()
                     aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
                     bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500]] #same bin cutoff scores as alignment
                     #initialize cutoff scores
                     lo_cutoff = 0
                     hi_cutoff = 1500
-
-
                     #if the scar isn't found on the forward read
                     missing_filt_seq +=1
                     bar = re.search('[AGCT]+',str(aln_data[0][1].seq)[-1:0:-1]) #search backwards through reverse complement of PE read, find first base that aligned.
