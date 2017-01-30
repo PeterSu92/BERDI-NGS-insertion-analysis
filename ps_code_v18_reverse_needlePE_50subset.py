@@ -527,7 +527,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         # print('appended portion is '+str(len(pe_append))+ ' long')
                         pe_seqs[p_index].letter_annotations = {'phred_quality':temp_phred} #now put back the new phred quality score list
                         # new_qual = quality_filter_single(s,q_cutoff=20)
-                        matched_seq_list.append(pe_read[p_index])
+                        matched_seq_list.append(pe_seqs[p_index])
                         append_ct += 1 
                     else:
                         bad_quality_reads+=1
@@ -551,8 +551,8 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     print(str(missing_align)+ ' reads did not have a perfect aligned region')
     print(str(too_small_chunk)+ ' reads had too small of an aligned region')
     print(str(nonphys_overlap)+' reads had part of the scar or some nonphysical overlap')
-    print(str(bad_quality_reads_first)+ 'reads had poor quality in the region to be appended')
-    print(str(bad_quality_reads_later)+' reads had overall poor quality in the final sequence')
+    # print(str(bad_quality_reads_first)+ 'reads had poor quality in the region to be appended')
+    print(str(bad_quality_reads)+' reads had overall poor quality in the final sequence')
     print(str(mismatched_len)+ ' reads had different lengths of Phred scores to be appended and bases to be appended')
     print(str(attempt_append)+ ' reads started to be appended before perhaps failing in the added bases quality')
     print(str(append_ct)+ ' reads had appended parts from the paired-end read')
