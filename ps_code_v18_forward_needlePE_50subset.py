@@ -449,7 +449,6 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     nonphys_overlap = 0
                     f = 0
                     if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] <= hi_cutoff):
-
                         matched_seq_list.append(copied)
                         aln_ct += 1
                     else:
@@ -483,7 +482,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
  
                     # pe_read_rev = str(pe_seqs[p_index].reverse_complement().seq)
                     search_oligo = str(aln_data[0][0].seq)[match_coord_start:match_coord_end] #coordinates are currently still based off the alignment alone; search oligo is only on forward base now
-                    scores = score_cutoff_by_length(cond_search_oligo,bin_scores)
+                    scores = score_cutoff_by_length(search_oligo,bin_scores)
                     lo_cutoff = scores[0]
                     hi_cutoff = scores[1]
                     if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] <= hi_cutoff):
