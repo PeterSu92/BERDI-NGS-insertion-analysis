@@ -406,8 +406,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 #Apparently the above line returns a boolean so long as the count
                 #isn't zero, so if the paired-end coordinates were found, the block below
                 # will be run
-                co_ct += 1 
-                 #Get part of the sequence that was actually copied 
+                co_ct += 1  
                 p_index = pe_coordL.index(get_coords(s))
                 pe_read = pe_seqs[p_index].reverse_complement()
                 if len(s) > len(pe_read):
@@ -417,6 +416,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     pe_read = pe_seqs[p_index].reverse_complement()     
 
                 if filt_seq in str(s.seq): #if the scar is present in the forward read, proceed as with the perfect match
+                    #Get part of the sequence that was actually copied
                     copied = copied_func(s)
                     if len(copied) < 19:
                         copied_too_short +=1
@@ -449,6 +449,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     nonphys_overlap = 0
                     f = 0
                     if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] <= hi_cutoff):
+
                         matched_seq_list.append(copied)
                         aln_ct += 1
                     else:
@@ -460,7 +461,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         SeqIO.write(pe_read,PE_seq_file,'fasta')
 
                     needle_cline = NeedleCommandline(asequence='temp_seq_PE.fa', bsequence='temp_temp_PE.fa', gapopen=10,
-                                                     gapextend=2, outfile='PE.needle') #hopefully only one needle file gets made
+                                                     gapextend=0.5, outfile='PE.needle') #hopefully only one needle file gets made
                     needle_cline()
                     aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
                     bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500]] #same bin cutoff scores as alignment
@@ -479,7 +480,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     #     match_coord_start = len(aln_data[0][1].seq)-bar.span()[1] #since search is backwards, subtract index of last base from overall length.
                     #     match_coord_end = len(aln_data[0][1].seq)-bar.span()[0]
                     #print("PE read is "+str(len(pe_read))+" long")
-
+ 
                     # pe_read_rev = str(pe_seqs[p_index].reverse_complement().seq)
                     search_oligo = str(aln_data[0][0].seq)[match_coord_start:match_coord_end] #coordinates are currently still based off the alignment alone; search oligo is only on forward base now
                     scores = score_cutoff_by_length(cond_search_oligo,bin_scores)
@@ -530,6 +531,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches
     print(str(co_ct)+' forward reads had the coordinates of the PE read nearby')
     print(str(missing_filt_seq)+' reads were missing the scar')
+    print(str(copied_too_short)+ ' reads had too small of a copied region')
     # print(str(missing_pe_filt_seq)+ 'paired-end reads are missing the scar!!!!')
     print(str(missing_align)+ ' reads did not have a perfect aligned region')
     print(str(too_small_chunk)+ ' reads had too small of an aligned region')
