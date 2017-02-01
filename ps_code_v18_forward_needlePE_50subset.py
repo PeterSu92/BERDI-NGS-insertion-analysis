@@ -425,7 +425,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     hi_cutoff = 1500
                     cond_bar = re.search('[AGCT]+',str(aln_data[0][1].seq)) #search forwards through reverse complement of PE read, find first base that aligned.
                     cond_bar_f = re.search('[AGCT]+',str(aln_data[0][0].seq)[-1:0:-1]) #search backwards through forward read, find first base that aligned
-                    cond_match_coord_start = max([cond_bar.span()[0],len(aln_data[0][0].seq)-cond_bar_f.span()[1]]) #coordinates start from the first base of the forward read that aligned with the paired end read
+                    cond_match_coord_start =cond_bar.span()[0] #coordinates start from the first base of the forward read that aligned with the paired end read
                     cond_match_coord_end = len(aln_data[0][0].seq)-cond_bar_f.span()[0]
                     cond_search_oligo = str(aln_data[0][0].seq)[cond_match_coord_start:cond_match_coord_end]
                     scores = score_cutoff_by_length(cond_search_oligo,bin_scores)
@@ -704,7 +704,6 @@ def main(argv):
     f_df = pd.read_csv(f_filt_seqs_file1)
     f_filt_seqs = f_df['sequence'].tolist()
     print ('f_filt_seqs ', f_filt_seqs)
-    # f_filt_seqs  ['CAACGATTCATACATAGCTAAAAGGTACC', 'CTCTAGGGCTAGCTCTAGCCAT', 'TGCGGCCGCA']
     r_filt_seqs = []
     #Generate reverse compliment for r_filt_seqs
     r_filt_seqs = [str(Seq(seq).reverse_complement()) for seq in f_filt_seqs]
