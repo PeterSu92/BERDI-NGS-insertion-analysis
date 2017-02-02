@@ -426,7 +426,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         SeqIO.write(pe_read,PE_seq_file,'fasta')
 
                     needle_cline = NeedleCommandline(asequence='temp_seq_PE.fa', bsequence='temp_temp_PE.fa', gapopen=10,
-                                                     gapextend=0.5, outfile='PE.needle') #hopefully only one needle file gets made
+                                                     gapextend=0.5, outfile='PE_copied.needle') #hopefully only one needle file gets made
                     needle_cline()
                     aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
                     bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500],[1400,1750],[1650,2000],[1800,2250],[2150,2500]] #same bin cutoff scores as alignment
@@ -518,18 +518,10 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         # pe_append = pe_read_rev[bar5.span()[1]:bar2] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                         attempt_append += 1
                         temp_phred = pe_seqs[p_index].letter_annotations.values()[0][bar4.span()[1]:bar3.span()[0]] #temporarily dump Phred quality scores into a list
-                        # temp_pe_phred = pe_seqs[p_index][bar4.span()[1]:bar3.span()[0]].letter_annotations.values()[0] #append phred quality scores of the region of interest to be appended
-                        # temp_phred = temp_phred+temp_pe_phred
-                        # if len(pe_append) != len(temp_pe_phred):
-                            # mismatched_len += 1
-                            # read_len_list.append([len(pe_append),len(temp_pe_phred)])
-                            # continue
-                        # print(str(len(temp_pe_phred))+ ' Phred scores')
                         pe_seqs[p_index].letter_annotations = {} #clear the letter annotations so that the sequence can be changed
                         pe_seqs[p_index].seq = pe_seqs[p_index].seq[bar4.span()[1]:bar3.span()[0]].reverse_complement() #return only the part of the forward read up to the end of the aligned region then plus the paired-end read up to the scar
                         # print('appended portion is '+str(len(pe_append))+ ' long')
                         pe_seqs[p_index].letter_annotations = {'phred_quality':temp_phred} #now put back the new phred quality score list
-                        # new_qual = quality_filter_single(s,q_cutoff=20)
                         matched_seq_list.append(pe_seqs[p_index])
                         append_ct += 1 
                     else:
