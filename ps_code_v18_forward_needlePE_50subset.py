@@ -351,7 +351,7 @@ def score_cutoff_by_length(sequence,bin_scores):
     elif len(sequence.lstrip('-').strip('-')) >= 250 and len(sequence.lstrip('-').strip('-')) <= 301:
         lo_cutoff = bin_scores[5][0]
         hi_cutoff = bin_scores[5][1]
-    elif ((len(str(s.seq).strip('-')) >= 300) and (len(str(s.seq).strip('-')) < 350)):
+    elif (len(sequence.strip('-')) >= 300) and (len(sequence.strip('-')) < 350):
         lo_cutoff = bin_scores[6][0]
         hi_cutoff = bin_scores[6][1]
                     
