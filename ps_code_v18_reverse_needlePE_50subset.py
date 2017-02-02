@@ -499,7 +499,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
                     bar3  = re.search(str(Seq(search_oligo).reverse_complement()),str(pe_seqs[p_index].seq)) #find the aligned region's reverse complement in the actual PE sequence
                     bar4 = re.search(str(Seq(filt_seq).reverse_complement()),str(pe_seqs[p_index].seq)) # find the filt sequence's reverse complement (in this case the scar) in the actual PE
-                    bar5 = re.search(search_oligo,pe_read_rev) 
+                    # bar5 = re.search(search_oligo,pe_read_rev) 
                     if str(type(bar3)) == "<type 'NoneType'>" or str(type(bar1)) == "<type 'NoneType'>" : #in the event there was a mismatch in the search oligo, the regex search will fail. Skip this iteration for the time being
                         missing_align += 1
                         continue
