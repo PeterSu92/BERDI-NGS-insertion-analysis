@@ -357,7 +357,12 @@ def score_cutoff_by_length(sequence,bin_scores):
     elif (len(sequence.strip('-')) >= 350) and (len(sequence.strip('-')) < 400):
         lo_cutoff = bin_scores[7][0]
         hi_cutoff = bin_scores[7][1]
-                    
+    elif (len(sequence.strip('-')) >= 400) and (len(sequence.strip('-')) < 450):
+        lo_cutoff = bin_scores[8][0]
+        hi_cutoff = bin_scores[8][1]
+    elif (len(sequence.strip('-')) >= 450) and (len(sequence.strip('-')) < 500):
+        lo_cutoff = bin_scores[9][0]
+        hi_cutoff = bin_scores[9][1]
     else:
         print(str(len(sequence.lstrip('-').strip('-')))+' is the length of the problematic read')
         raise ValueError('Sequence is either too long or too short; it is '+str(len(sequence.lstrip('-').strip('-')))+ ' bases long')
@@ -426,7 +431,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                                                      gapextend=0.5, outfile='PE.needle') #hopefully only one needle file gets made
                     needle_cline()
                     aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
-                    bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500],[1400,1750],[1650,2000]] #same bin cutoff scores as alignment
+                    bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500],[1400,1750],[1650,2000],[1800,2250],[2150,2500]] #same bin cutoff scores as alignment
                     #initialize cutoff scores
                     lo_cutoff = 0
                     hi_cutoff = 1500
@@ -459,7 +464,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                                                      gapextend=0.5, outfile='PE.needle') #hopefully only one needle file gets made
                     needle_cline()
                     aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
-                    bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500],[1400,1750],[1650,2000]] #same bin cutoff scores as alignment
+                    bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500],[1400,1750],[1650,2000],[1800,2250],[2150,2500]] #same bin cutoff scores as alignment
                     #initialize cutoff scores
                     lo_cutoff = 0
                     hi_cutoff = 1500
