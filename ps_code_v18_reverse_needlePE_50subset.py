@@ -352,9 +352,21 @@ def score_cutoff_by_length(sequence,bin_scores):
     elif len(sequence.lstrip('-').strip('-')) >= 250 and len(sequence.lstrip('-').strip('-')) <= 301:
         lo_cutoff = bin_scores[5][0]
         hi_cutoff = bin_scores[5][1]
+    elif (len(sequence.strip('-')) >= 300) and (len(sequence.strip('-')) < 350):
+        lo_cutoff = bin_scores[6][0]
+        hi_cutoff = bin_scores[6][1]
+    elif (len(sequence.strip('-')) >= 350) and (len(sequence.strip('-')) < 400):
+        lo_cutoff = bin_scores[7][0]
+        hi_cutoff = bin_scores[7][1]
+    elif (len(sequence.strip('-')) >= 400) and (len(sequence.strip('-')) < 450):
+        lo_cutoff = bin_scores[8][0]
+        hi_cutoff = bin_scores[8][1]
+    elif (len(sequence.strip('-')) >= 450) and (len(sequence.strip('-')) < 500):
+        lo_cutoff = bin_scores[9][0]
+        hi_cutoff = bin_scores[9][1]
     else:
         print(str(len(sequence.lstrip('-').strip('-')))+' is the length of the problematic read')
-        raise ValueError('Sequence is either too long')
+        raise ValueError('Sequence is either too long or too short; it is '+str(len(sequence.lstrip('-').strip('-')))+ ' bases long')
     cutoff_scores = [lo_cutoff,hi_cutoff]
     return cutoff_scores
             
@@ -417,7 +429,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                                                      gapextend=0.5, outfile='PE.needle') #hopefully only one needle file gets made
                     needle_cline()
                     aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
-                    bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500]] #same bin cutoff scores as alignment
+                    bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500],[1400,1750],[1650,2000],[1800,2250],[2150,2500]] #same bin cutoff scores as alignment
                     #initialize cutoff scores
                     lo_cutoff = 0
                     hi_cutoff = 1500
@@ -451,29 +463,20 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                                                      gapextend=0.5, outfile='PE.needle') #hopefully only one needle file gets made
                     needle_cline()
                     aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
-                    bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500]] #same bin cutoff scores as alignment
+                    bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500],[1400,1750],[1650,2000],[1800,2250],[2150,2500]] #same bin cutoff scores as alignment
                     #initialize cutoff scores
                     lo_cutoff = 0
                     hi_cutoff = 1500
                     #if the scar isn't found on the forward read
                     missing_filt_seq +=1
-                    bar = re.search('[AGCT]+',str(aln_data[0][1].seq)[-1:0:-1]) #search backwards through reverse complement of PE read, find first base that aligned.
-                    bar_f = re.search('[AGCT]+',str(aln_data[0][0].seq)[-1:0:-1]) # search backwards through fwd read to find the first base that aligned
-                    if bar.span()[0] < bar_f.span()[0]: #this is if the fwd strand search goes longer until it hits an aligned base
-                        match_coord_start = len(aln_data[0][1].seq)-bar.span()[1]
-                        match_coord_end = len(aln_data[0][1].seq)-bar_f.span()[0]
-                        match_len = bar.span()[1]-bar_f.span()[0] #want the match length to go from the start of the first aligned base in the foward read to the last aligned base in the reverse read
-                        # if match_len < 0: #it is possible the forward read finds a small chunk 
-                        #     too_small_chunk += 1
-                        #     continue
-                    else: #should never encouer scenario where the reverse complement of the PE read goes longer until it hits an aligned base
-                        match_coord_start = len(aln_data[0][1].seq)-bar.span()[1] #since search is backwards, subtract index of last base from overall length.
-                        match_coord_end = len(aln_data[0][1].seq)-bar.span()[0]
-                    #print("PE read is "+str(len(pe_read))+" long")
-  
-                    # match_coord_end = match_coord_start+match_len
-                    pe_read_rev = str(pe_seqs[p_index].reverse_complement().seq)
-                    search_oligo = str(aln_data[0][1].seq)[match_coord_start:match_coord_end] #coordinates are currently still based off the alignment alone
+                    bar = re.search('[AGCT]+',str(aln_data[0][1].seq)) #search forwards through reverse complement of PE read, find first base that aligned. 
+                    bar_pe_r = re.search('[AGCT]+',str(aln_data[0][1].seq)[-1:0:-1]) #search backwards through PE read, find first base that aligned
+                    bar_f = re.search('[AGCT]+',str(aln_data[0][0].seq))
+                    bar_f_r = re.search('[AGCT]+',str(aln_data[0][0].seq)[-1:0:-1]) # search backwards through fwd read to find the first base that aligned
+                    # if bar.span()[0] < bar_f.span()[0]: #this is if the fwd strand search goes longer until it hits an aligned base
+                    match_coord_start = max([bar.span()[0],bar_f.span()[0]]) #coordinates start from the first base of the forward read that aligned with the paired end read, sometimes the paired end read has bases earlier
+                    match_coord_end = min([(len(aln_data[0][0].seq)-bar_f_r.span()[0]),(len(aln_data[0][0].seq)-bar_pe_r.span()[0])])# coordinates end at the last aligned base in the forward read such that no bases present on the PE read but not fwd make it
+                    search_oligo = str(aln_data[0][0].seq)[match_coord_start:match_coord_end] #coordinates are currently still based off the alignment alone; search oligo is only on forward base now
                     scores = score_cutoff_by_length(search_oligo,bin_scores)
                     lo_cutoff = scores[0]
                     hi_cutoff = scores[1]
