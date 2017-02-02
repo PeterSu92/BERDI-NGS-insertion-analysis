@@ -354,6 +354,9 @@ def score_cutoff_by_length(sequence,bin_scores):
     elif (len(sequence.strip('-')) >= 300) and (len(sequence.strip('-')) < 350):
         lo_cutoff = bin_scores[6][0]
         hi_cutoff = bin_scores[6][1]
+    elif (len(sequence.strip('-')) >= 350) and (len(sequence.strip('-')) < 400):
+        lo_cutoff = bin_scores[7][0]
+        hi_cutoff = bin_scores[7][1]
                     
     else:
         print(str(len(sequence.lstrip('-').strip('-')))+' is the length of the problematic read')
@@ -423,7 +426,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                                                      gapextend=0.5, outfile='PE.needle') #hopefully only one needle file gets made
                     needle_cline()
                     aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
-                    bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500],[1400,1750]] #same bin cutoff scores as alignment
+                    bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500],[1400,1750],[1650,2000]] #same bin cutoff scores as alignment
                     #initialize cutoff scores
                     lo_cutoff = 0
                     hi_cutoff = 1500
@@ -456,7 +459,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                                                      gapextend=0.5, outfile='PE.needle') #hopefully only one needle file gets made
                     needle_cline()
                     aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
-                    bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500]] #same bin cutoff scores as alignment
+                    bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500],[1400,1750],[1650,2000]] #same bin cutoff scores as alignment
                     #initialize cutoff scores
                     lo_cutoff = 0
                     hi_cutoff = 1500
@@ -481,9 +484,6 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         too_small_chunk += 1
                         continue
                     bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
-                    # f = quality_filter_single(pe_seqs[p_index][bar4.span()[0]:bar3.span()[0]],q_cutoff=20)
-                    # if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
-                    #     bar2 = pe_read_rev.find(filt_seq) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
                     if str(type(bar1)) == "<type 'NoneType'>": #if the aligned region can't be found in the forward read
                         missing_align += 1
                         continue
