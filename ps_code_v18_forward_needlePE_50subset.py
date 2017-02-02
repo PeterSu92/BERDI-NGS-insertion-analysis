@@ -428,7 +428,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         SeqIO.write(pe_read,PE_seq_file,'fasta')
 
                     needle_cline = NeedleCommandline(asequence='temp_seq_PE.fa', bsequence='temp_temp_PE.fa', gapopen=10,
-                                                     gapextend=0.5, outfile='PE.needle') #hopefully only one needle file gets made
+                                                     gapextend=0.5, outfile='PE_copied.needle') #hopefully only one needle file gets made
                     needle_cline()
                     aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
                     bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500],[1400,1750],[1650,2000],[1800,2250],[2150,2500]] #same bin cutoff scores as alignment
@@ -512,10 +512,8 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     print ("")
     
     count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches
-    # print(str(co_ct)+' forward reads had the coordinates of the PE read nearby')
     print(str(missing_filt_seq)+' reads were missing the reverse primer')
     print(str(copied_too_short)+ ' reads had too small of a copied region')
-    # print(str(missing_pe_filt_seq)+ 'paired-end reads are missing the scar!!!!')
     print(str(missing_align)+ ' reads did not have a perfect aligned region')
     print(str(too_small_chunk)+ ' reads had too small of an aligned region')
     print(str(full_align)+ ' forward reads matched all the way to the last base')
