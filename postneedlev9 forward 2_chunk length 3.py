@@ -165,6 +165,8 @@ def insertion_chunks(final_seqs):
     print(str(end_dashes)+' reads had end dashes')
     print(str(perfect_matches)+' reads are perfect matches')
     print(str(other_scenario) +' reads did not satisfy any of the criteria')
+
+    return chunk_dict, insertions
     
 def insertion_site_freq(final_seqs):
     '''
