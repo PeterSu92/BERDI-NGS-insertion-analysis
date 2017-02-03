@@ -105,7 +105,7 @@ def insertion_chunks(final_seqs):
     discarded_reads = 0
 
     for i in range(len(final_seqs)):
-           end_pos = 0 #forward search starts at the beginning
+           # end_pos = 0 #forward search starts at the beginning
            #insert_site = 0
            num_chunks = 0
            seq_chunks = []
@@ -117,14 +117,14 @@ def insertion_chunks(final_seqs):
               end_dashes +=1
               continue
            while total_len < len(final_seqs[i].seq):
-              bar=re.search('[AGCT]+',str(final_seqs[i].seq)[end_pos:-1:1]) #forward search: from start to finish
+              bar=re.search('[AGCT]+',str(final_seqs[i].seq)) #forward search: from start to finish
               if str(type(bar)) == "<type 'NoneType'>":
                    #If this happens, we'll know the end was reached without finding a suitable insertion
                     reads_at_end += 1
                     break
 
-              if end_pos >= 300: #this prevents a nonphysical insertion from happening
-                    end_pos = end_pos-4
+              if insert_site >= 300: #this prevents a nonphysical insertion from happening
+                    insert_site = insert_site-4
                     insertions.append(insert_site)
                     break
               elif abs((bar.span()[1]-bar.span()[0])) == (len(final_seqs[i].seq.lstrip('-').strip('-'))): #perfect match occurs
@@ -146,9 +146,9 @@ def insertion_chunks(final_seqs):
               #        discarded_reads += 1
               #        large_chunk_reads +=1
               #        break
-              elif len(final_seqs[i].seq.strip('-')) != len(final_seqs[i].seq.lstrip('-')): #gets rid of alignments with gaps at the 3' end
-                     discarded_reads +=1
-                     break
+              # elif len(final_seqs[i].seq.strip('-')) != len(final_seqs[i].seq.lstrip('-')): #gets rid of alignments with gaps at the 3' end
+              #        discarded_reads +=1
+              #        break
               elif num_chunks > max_chunks: #too many chunks leads to an alignment being thrown out. 
                      discarded_reads += 1
                      max_chunks_exceeded +=1
