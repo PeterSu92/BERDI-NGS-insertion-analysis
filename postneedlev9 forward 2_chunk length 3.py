@@ -94,8 +94,8 @@ def insertion_chunks(final_seqs):
     '''
     chunk_dict = {}
     insertions = []
-    chunk_size = 3
-    max_chunks = 2
+    chunk_size = 0
+    max_chunks = 0
     reads_at_end = 0
     large_chunk_reads = 0
     end_dashes = 0
@@ -110,7 +110,6 @@ def insertion_chunks(final_seqs):
            num_chunks = 0
            seq_chunks = []
            insert_site = 0
-           
            total_len = 0
            #print('Current sequence: ' +str(i+1)) #keep this only for test sequences
            if str(final_seqs[i].seq)[-1] == '-':
@@ -135,18 +134,18 @@ def insertion_chunks(final_seqs):
                      seq_chunks.append(bar.span()[1]-bar.span()[0])
                      perfect_matches +=1
                      break
-              elif abs((bar.span()[1]-bar.span()[0])) <= chunk_size: #if a chunk is small enough, set index correspondingly but keep searching through the alignment
-                     num_chunks += 1
-                     end_pos += bar.span()[1]
-                     insert_site += bar.span()[1]
-                     span_length = abs(bar.span()[1]-bar.span()[0])
-                     seq_chunks.append(span_length)
-                     total_len += bar.span()[1]
-                     continue
-              elif (abs((bar.span()[1]-bar.span()[0])) > chunk_size) and (abs((bar.span()[1]-bar.span()[0])) != len(final_seqs[i].seq.lstrip('-'))-total_len): #if chunk too large, get rid of the alignment
-                     discarded_reads += 1
-                     large_chunk_reads +=1
-                     break
+              # elif abs((bar.span()[1]-bar.span()[0])) <= chunk_size: #if a chunk is small enough, set index correspondingly but keep searching through the alignment
+              #        num_chunks += 1
+              #        end_pos += bar.span()[1]
+              #        insert_site += bar.span()[1]
+              #        span_length = abs(bar.span()[1]-bar.span()[0])
+              #        seq_chunks.append(span_length)
+              #        total_len += bar.span()[1]
+              #        continue
+              # elif (abs((bar.span()[1]-bar.span()[0])) > chunk_size) and (abs((bar.span()[1]-bar.span()[0])) != len(final_seqs[i].seq.lstrip('-'))-total_len): #if chunk too large, get rid of the alignment
+              #        discarded_reads += 1
+              #        large_chunk_reads +=1
+              #        break
               elif len(final_seqs[i].seq.strip('-')) != len(final_seqs[i].seq.lstrip('-')): #gets rid of alignments with gaps at the 3' end
                      discarded_reads +=1
                      break
