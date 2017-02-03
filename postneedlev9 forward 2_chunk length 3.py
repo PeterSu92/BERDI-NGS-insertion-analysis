@@ -128,7 +128,7 @@ def insertion_chunks(final_seqs):
                     end_pos = end_pos-4
                     insertions.append(insert_site)
                     break
-              elif abs((bar.span()[1]-bar.span()[0])+1) == (len(final_seqs[i].seq.lstrip('-').strip('-'))): #perfect match occurs
+              elif abs((bar.span()[1]-bar.span()[0])) == (len(final_seqs[i].seq.lstrip('-').strip('-'))): #perfect match occurs
                      insert_site = bar.span()[0] #forward search stops at the first base of the DNA chunk
                      insertions.append(insert_site)
                      chunk_dict.update({insert_site:seq_chunks})
@@ -204,7 +204,7 @@ def insertion_site_freq(final_seqs):
 ### Append this prefix as desired ###
 output_file_prefix = 'PCR3 4 chunk'
 #Bin cutoff scores
-bin_scores = [[42,251],[205,501],[446,751],[687,1001],[928,1251],[1100,1500]]
+bin_scores = [[42,251],[205,501],[446,751],[687,1001],[928,1251],[1100,1500],[1400,1750]]
 final_sequences = []
 newseqs = []
 needle_files = glob.glob('*.needle')
