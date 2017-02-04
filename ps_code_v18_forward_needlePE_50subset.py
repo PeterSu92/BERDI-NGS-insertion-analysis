@@ -641,7 +641,7 @@ def insertion_site_freq(final_seqs,template,reaction_number):
         coverage: int,% of all possible sites that have at least one insertion
     '''
     
-    chunky_dict = insertion_chunks(final_seqs,template)
+    chunky_dict = insertion_chunks(final_seqs)
     insert_dict = {} #dict consisting of insertion site: insertion count pairs
     insertion_list = chunky_dict[1]
     #insertion_frequencies = []
