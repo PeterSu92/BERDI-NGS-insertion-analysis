@@ -319,7 +319,7 @@ def gen_copied_seq_function(f_res):
 def score_cutoff_by_length(sequence,bin_scores):
 
     """
-    Determines the size of the sequence and assigns a corresponding bin low and high cutoff score for the Needleman-Wunsch algorithm
+    Determines the size of the sequence and assigns a corresponding bin low and high cutoff score for the Needleman-Wunsch algorithm. Allows for up to 500 bp sequences
 
     Inputs:
         sequence - str, the characters (DNA bases here) for which a score cutoff is determined
@@ -419,7 +419,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 if filt_seq in str(s.seq): #if the scar is present in the forward read, proceed as with the perfect match
                     #Get part of the sequence that was actually copied
                     copied = copied_func(s)
-                    if len(copied) < 19:
+                    if len(copied) < 19: #since this includes a primer, should never be shorter than the shortest primer
                         copied_too_short +=1
                         continue
                     with open('temp_seq_PE.fa','w') as sh: #create temporary seq file, hopefully re-written each time
@@ -434,13 +434,14 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500],[1400,1750],[1650,2000],[1800,2250],[2150,2500]] #same bin cutoff scores as alignment
                     #initialize cutoff scores
                     lo_cutoff = 0
-                    hi_cutoff = 1500
-                    cond_bar = re.search('[AGCT]+',str(aln_data[0][1].seq)) #search forwards through reverse complement of PE read, find first base that aligned.
-                    cond_bar_f = re.search('[AGCT]+',str(aln_data[0][0].seq)[-1:0:-1]) #search backwards through forward read, find first base that aligned
-                    cond_match_coord_start =cond_bar.span()[0] #coordinates start from the first base of the forward read that aligned with the paired end read
-                    cond_match_coord_end = len(aln_data[0][0].seq)-cond_bar_f.span()[0]
-                    cond_search_oligo = str(aln_data[0][0].seq)[cond_match_coord_start:cond_match_coord_end]
-                    scores = score_cutoff_by_length(cond_search_oligo,bin_scores)
+                    hi_cutoff = 0
+                    #regex searches
+                    # cond_bar = re.search('[AGCT]+',str(aln_data[0][0].seq)) #search forwards through forward (copied) read, find first base that aligned.
+                    # cond_bar_f = re.search('[AGCT]+',str(aln_data[0][0].seq)[-1:0:-1]) #search backwards through forward (copied) read, find first base that aligned
+                    # cond_match_coord_start =cond_bar.span()[0] #coordinates start from the first base of the forward read that aligned with the paired end read
+                    # cond_match_coord_end = len(aln_data[0][0].seq)-cond_bar_f.span()[0] #coordinates end at the first base in reverse from the forward read
+                    # cond_search_oligo = str(aln_data[0][0].seq)[cond_match_coord_start:cond_match_coord_end] #search oligo is the matching part from the forward (copied) read
+                    scores = score_cutoff_by_length(str(aln_data[0][0].seq).strip('-'),bin_scores)
                     lo_cutoff = scores[0]
                     hi_cutoff = scores[1]
                     match_coord_start = 0
