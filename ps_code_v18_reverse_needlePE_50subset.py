@@ -428,7 +428,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     needle_cline = NeedleCommandline(asequence='temp_seq_PE.fa', bsequence='temp_temp_PE.fa', gapopen=10,
                                                      gapextend=0.5, outfile='PE_copied.needle') #hopefully only one needle file gets made
                     needle_cline()
-                    aln_data = list(AlignIO.parse(open('PE.needle'),"emboss"))
+                    aln_data = list(AlignIO.parse(open('PE_copied.needle'),"emboss"))
                     bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500],[1400,1750],[1650,2000],[1800,2250],[2150,2500]] #same bin cutoff scores as alignment
                     #initialize cutoff scores
                     lo_cutoff = 0
@@ -491,7 +491,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         aln_ct += 1
                     else:
                         continue
-                    if len(search_oligo) < 12:
+                    if len(search_oligo) < 12: #arbitrary cutoff for this aligned region based on fact that a 12 bp sequence is the smallest unique sequence in MBP
                         too_small_chunk += 1
                         continue
                     elif len(search_oligo) > 20: #sometimes the entire region aligns, so I truncate it to just 20 bases for higher chance of alignment in the event of a mismatch surviving score filtering
@@ -545,7 +545,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     # print(str(bad_quality_reads_first)+ 'reads had poor quality in the region to be appended')
     print(str(bad_quality_reads)+' reads had overall poor quality in the final sequence')
     print(str(mismatched_len)+ ' reads had different lengths of Phred scores to be appended and bases to be appended')
-    print(str(attempt_append)+ ' reads started to be appended before perhaps failing in the added bases quality')
+    # print(str(attempt_append)+ ' reads started to be appended before perhaps failing in the added bases quality')
     print(str(append_ct)+ ' reads had appended parts from the paired-end read')
     return matched_seq_list,read_len_list
     
