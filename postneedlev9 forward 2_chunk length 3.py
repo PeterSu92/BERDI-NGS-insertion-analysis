@@ -88,12 +88,13 @@ def insertion_chunks(final_seqs):
         chunk_dict - dict of chunks of continuous DNA segments per read.
         Each entry has key 'insert_site' with a corresponding value of a list of
         the lengths of each continuous chunk (starting from the first aligned bit)
-        insertions - list of positions where the first chunk of continuous DNA began
+        insertions_corrected - list of positions where the first chunk of continuous DNA began
         for each particular read. Will have redundant entries in most cases, as
         our method often results in multiple insertions at any given site.
     '''
     chunk_dict = {}
     insertions = []
+    insertions_corrected = []
     chunk_size = 0
     max_chunks = 0
     reads_at_end = 0
@@ -122,7 +123,6 @@ def insertion_chunks(final_seqs):
                    #If this happens, we'll know the end was reached without finding a suitable insertion
                     reads_at_end += 1
                     break
-
               if insert_site >= 300: #this prevents a nonphysical insertion from happening
                     insert_site = insert_site-4
                     insertions.append(insert_site)
@@ -158,7 +158,7 @@ def insertion_chunks(final_seqs):
                     other_scenario +=1
                     discarded_reads += 1
                     break
-
+    insertions_corrected = [s+4 for s in insertions]
     print (str(reads_at_end)+ ' reads reached the end without a suitable insertion')    
     print (str(discarded_reads)+' reads were discarded :(')
     print(str(large_chunk_reads)+' reads had too large of a chunk')
@@ -167,7 +167,7 @@ def insertion_chunks(final_seqs):
     print(str(perfect_matches)+' reads are perfect matches')
     print(str(other_scenario) +' reads did not satisfy any of the criteria')
 
-    return chunk_dict, insertions
+    return chunk_dict, insertions_corrected
     
 def insertion_site_freq(final_seqs):
     '''
