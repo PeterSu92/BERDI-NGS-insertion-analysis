@@ -503,7 +503,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     # if str(type(bar3)) == "<type 'NoneType'>" or str(type(bar1)) == "<type 'NoneType'>" : #in the event there was a mismatch in the search oligo, the regex search will fail. Skip this iteration for the time being
                     #     missing_align += 1
                     #     continue
-                    elif str(type(bar4)) == "<type 'NoneType'>":
+                    if str(type(bar4)) == "<type 'NoneType'>":
                         missing_pe_filt_seq += 1
                         continue
                     # elif bar4.span()[1] > bar3.span()[0]: # if some alignment happens such that part of the transposon scar aligns, this is messy and not worth dealing with
@@ -533,18 +533,27 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     # read_len_list = [f_list,pe_list]
     print ("")
     
-    count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches
-    print(str(co_ct)+' forward reads had the coordinates of the PE read nearby')
-    print(str(missing_filt_seq)+' reads were missing the scar')
-    print(str(missing_pe_filt_seq)+ 'paired-end reads are missing the scar!!!!')
-    print(str(missing_align)+ ' reads did not have a perfect aligned region')
-    print(str(too_small_chunk)+ ' reads had too small of an aligned region')
-    print(str(nonphys_overlap)+' reads had part of the scar or some nonphysical overlap')
-    # print(str(bad_quality_reads_first)+ 'reads had poor quality in the region to be appended')
-    print(str(bad_quality_reads)+' reads had overall poor quality in the final sequence')
-    print(str(mismatched_len)+ ' reads had different lengths of Phred scores to be appended and bases to be appended')
-    # print(str(attempt_append)+ ' reads started to be appended before perhaps failing in the added bases quality')
-    print(str(append_ct)+ ' reads had appended parts from the paired-end read')
+    count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches\
+        with open('PE_statistics.csv','w') as file1:
+        # should result in rxn1_828_829_F_results.csv as output
+        writer = csv.writer(file1)
+        writer.writerow(str(missing_filt_seq)+' reads were missing the reverse primer')
+        writer.writerow(str(copied_too_short)+ ' reads had too small of a copied region')
+        writer.writerow(str(missing_align)+ ' reads did not have a perfect aligned region, probably a mismatch')
+        writer.writerow(str(too_small_chunk)+ ' reads had too small of an aligned region')
+        writer.writerow(str(full_align)+ ' forward reads matched all the way to the last base')
+        file1.close()
+    # print(str(co_ct)+' forward reads had the coordinates of the PE read nearby')
+    # print(str(missing_filt_seq)+' reads were missing the scar')
+    # print(str(missing_pe_filt_seq)+ 'paired-end reads are missing the scar!!!!')
+    # print(str(missing_align)+ ' reads did not have a perfect aligned region')
+    # print(str(too_small_chunk)+ ' reads had too small of an aligned region')
+    # print(str(nonphys_overlap)+' reads had part of the scar or some nonphysical overlap')
+    # # print(str(bad_quality_reads_first)+ 'reads had poor quality in the region to be appended')
+    # print(str(bad_quality_reads)+' reads had overall poor quality in the final sequence')
+    # print(str(mismatched_len)+ ' reads had different lengths of Phred scores to be appended and bases to be appended')
+    # # print(str(attempt_append)+ ' reads started to be appended before perhaps failing in the added bases quality')
+    # print(str(append_ct)+ ' reads had appended parts from the paired-end read')
     return matched_seq_list,read_len_list
     
 #Insertion site functions and code
