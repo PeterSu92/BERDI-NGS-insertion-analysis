@@ -491,7 +491,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         continue
                     # elif len(search_oligo) > 20: #sometimes the entire region aligns, so I truncate it to just 20 bases for higher chance of alignment in the event of a mismatch surviving score filtering
                     #     search_oligo = search_oligo[len(search_oligo)-12:]
-                    # bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
+                    bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
                     if str(type(bar1)) == "<type 'NoneType'>": #if the aligned region can't be found in the forward read
                         missing_align += 1
                         continue
@@ -501,7 +501,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         full_align += 1
                     temp_phred = s.letter_annotations.values()[0][0:50] #temporarily dump Phred quality scores into a list. Only need the first 50 bases since this is forward searching
                     s.letter_annotations = {} #clear the letter annotations so that the sequence can be changed
-                    s.seq = s.seq[0:50] #return only the part of the forward read up to the end of the aligned region. This way, no junk gets kept in the case of a short read
+                    s.seq = s.seq[0:50] #return only the part of the forward read up 50 bases in. This way, junk from the alignment won't affect the forward read insertion calculation
                     s.letter_annotations = {'phred_quality':temp_phred} #now put back the new phred quality score list
                     matched_seq_list.append(s)
 
@@ -513,7 +513,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     
     count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches
 
-    with open(outp_file_loc+outp_name+'_PE_statistics.csv','w') as file1:
+    with open('PE_statistics.csv','w') as file1:
         # should result in rxn1_828_829_F_results.csv as output
         writer = csv.writer(file1)
         writer.writerow(str(missing_filt_seq)+' reads were missing the reverse primer')
