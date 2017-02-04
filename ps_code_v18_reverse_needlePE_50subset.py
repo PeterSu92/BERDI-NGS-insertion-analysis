@@ -494,31 +494,29 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     if len(search_oligo) < 12: #arbitrary cutoff for this aligned region based on fact that a 12 bp sequence is the smallest unique sequence in MBP
                         too_small_chunk += 1
                         continue
-                    elif len(search_oligo) > 20: #sometimes the entire region aligns, so I truncate it to just 20 bases for higher chance of alignment in the event of a mismatch surviving score filtering
-                        search_oligo = search_oligo[len(search_oligo)-12:]
-                    #print('search oligo is '+str(len(search_oligo))+' bases long')
-                    bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
-                    bar3  = re.search(str(Seq(search_oligo).reverse_complement()),str(pe_seqs[p_index].seq)) #find the aligned region's reverse complement in the actual PE sequence
-                    bar4 = re.search(str(Seq(filt_seq).reverse_complement()),str(pe_seqs[p_index].seq)) # find the filt sequence's reverse complement (in this case the scar) in the actual PE
-                    # bar5 = re.search(search_oligo,pe_read_rev) 
-                    if str(type(bar3)) == "<type 'NoneType'>" or str(type(bar1)) == "<type 'NoneType'>" : #in the event there was a mismatch in the search oligo, the regex search will fail. Skip this iteration for the time being
-                        missing_align += 1
-                        continue
+                    # elif len(search_oligo) > 50: #sometimes the entire region aligns, so I truncate it to just 50 bases for higher chance of alignment in the event of a mismatch surviving score filtering
+                    #     search_oligo = search_oligo[len(search_oligo)-50:]
+                    # #print('search oligo is '+str(len(search_oligo))+' bases long')
+                    # bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
+                    # bar3  = re.search(str(Seq(search_oligo).reverse_complement()),str(pe_seqs[p_index].seq)) #find the aligned region's reverse complement in the actual PE sequence
+                    bar4 = re.search(str(Seq(filt_seq).reverse_complement()),str(pe_seqs[p_index].seq)) # find the filt sequence's reverse complement (in this case the scar) in the actual PE 
+                    # if str(type(bar3)) == "<type 'NoneType'>" or str(type(bar1)) == "<type 'NoneType'>" : #in the event there was a mismatch in the search oligo, the regex search will fail. Skip this iteration for the time being
+                    #     missing_align += 1
+                    #     continue
                     elif str(type(bar4)) == "<type 'NoneType'>":
                         missing_pe_filt_seq += 1
                         continue
-                    elif bar4.span()[1] > bar3.span()[0]: # if some alignment happens such that part of the transposon scar aligns, this is messy and not worth dealing with
-                        nonphys_overlap += 1
-                        continue
-                    f = quality_filter_single(pe_seqs[p_index][bar4.span()[1]:bar3.span()[0]],q_cutoff=20)
+                    # elif bar4.span()[1] > bar3.span()[0]: # if some alignment happens such that part of the transposon scar aligns, this is messy and not worth dealing with
+                    #     nonphys_overlap += 1
+                    #     continue
+                    f = quality_filter_single(pe_seqs[p_index][bar4.span()[1]:(bar4.span()[1]+50)],q_cutoff=20)
                     if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
                         attempt_append += 1
-                        temp_phred = pe_seqs[p_index].letter_annotations.values()[0][bar4.span()[1]:bar3.span()[0]] #temporarily dump Phred quality scores into a list
+                        temp_phred = pe_seqs[p_index].letter_annotations.values()[0][bar4.span()[1]:(bar4.span()[1]+50)] #temporarily dump Phred quality scores into a list
                         pe_seqs[p_index].letter_annotations = {} #clear the letter annotations so that the sequence can be changed
-                        pe_seqs[p_index].seq = pe_seqs[p_index].seq[bar4.span()[1]:bar3.span()[0]].reverse_complement() #return only the part of the forward read up to the end of the aligned region then plus the paired-end read up to the scar
-                        # print('appended portion is '+str(len(pe_append))+ ' long')
-                        pe_seqs[p_index].letter_annotations = {'phred_quality':temp_phred} #now put back the new phred quality score list
-                        matched_seq_list.append(pe_seqs[p_index])
+                        pe_seqs[p_index].seq = pe_seqs[p_index].seq[bar4.span()[1]:(bar4.span()[1]+50)].reverse_complement() #return only the part of the paired-end read up from end of the scar to the end of the aligned region; reverse complement
+                        pe_seqs[p_index].letter_annotations = {'phred_quality':temp_phred} #now put back the new phred quality score list. Doesn't matter that it's flipped because we are only looking if any socre is below 20
+                        matched_seq_list.append(pe_seqs[p_index]) #now this is appending the reverse complement of the paired end read so it can still reverse search
                         append_ct += 1 
                     else:
                         bad_quality_reads+=1
