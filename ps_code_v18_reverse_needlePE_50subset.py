@@ -432,13 +432,14 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500],[1400,1750],[1650,2000],[1800,2250],[2150,2500]] #same bin cutoff scores as alignment
                     #initialize cutoff scores
                     lo_cutoff = 0
-                    hi_cutoff = 1500
-                    cond_bar = re.search('[AGCT]+',str(aln_data[0][1].seq)) #search forwards through reverse complement of PE read, find first base that aligned.
-                    cond_bar_f = re.search('[AGCT]+',str(aln_data[0][0].seq)[-1:0:-1]) #search backwards through forward read, find first base that aligned
-                    cond_match_coord_start = max([cond_bar.span()[0],len(aln_data[0][0].seq)-cond_bar_f.span()[1]]) #coordinates start from the first base of the forward read that aligned with the paired end read
-                    cond_match_coord_end = len(aln_data[0][0].seq)-cond_bar_f.span()[0]
-                    cond_search_oligo = str(aln_data[0][0].seq)[cond_match_coord_start:cond_match_coord_end]
-                    scores = score_cutoff_by_length(cond_search_oligo,bin_scores)
+                    hi_cutoff = 0
+                    #regex searches
+                    # cond_bar = re.search('[AGCT]+',str(aln_data[0][0].seq)) #search forwards through forward (copied) read, find first base that aligned.
+                    # cond_bar_f = re.search('[AGCT]+',str(aln_data[0][0].seq)[-1:0:-1]) #search backwards through forward (copied) read, find first base that aligned
+                    # cond_match_coord_start =cond_bar.span()[0] #coordinates start from the first base of the forward read that aligned with the paired end read
+                    # cond_match_coord_end = len(aln_data[0][0].seq)-cond_bar_f.span()[0] #coordinates end at the first base in reverse from the forward read
+                    # cond_search_oligo = str(aln_data[0][0].seq)[cond_match_coord_start:cond_match_coord_end] #search oligo is the matching part from the forward (copied) read
+                    scores = score_cutoff_by_length(str(aln_data[0][0].seq).strip('-'),bin_scores)
                     lo_cutoff = scores[0]
                     hi_cutoff = scores[1]
                     match_coord_start = 0
@@ -511,11 +512,6 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                         continue
                     f = quality_filter_single(pe_seqs[p_index][bar4.span()[1]:bar3.span()[0]],q_cutoff=20)
                     if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
-                        bar2 = pe_read_rev.find(filt_seq) # find the filter sequence in the reverse complement of the PE read, for the purpose of appending a region
-                        if bar2 == -1:
-                            raise ValueError('Transposon scar not found in paired-end read rev comp')
-                        # print ("bar5.span()[1] is "+str(bar5.span()[1])+ " bar2.span()[0] is "+ str(bar2.span()[0]))
-                        # pe_append = pe_read_rev[bar5.span()[1]:bar2] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
                         attempt_append += 1
                         temp_phred = pe_seqs[p_index].letter_annotations.values()[0][bar4.span()[1]:bar3.span()[0]] #temporarily dump Phred quality scores into a list
                         pe_seqs[p_index].letter_annotations = {} #clear the letter annotations so that the sequence can be changed
