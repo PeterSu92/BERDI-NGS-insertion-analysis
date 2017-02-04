@@ -156,6 +156,7 @@ def insertion_chunks(final_seqs):
          
               else: #This should not happen now, but if it does, will document it
                     other_scenario +=1
+                    discarded_reads += 1
                     break
 
     print (str(reads_at_end)+ ' reads reached the end without a suitable insertion')    
