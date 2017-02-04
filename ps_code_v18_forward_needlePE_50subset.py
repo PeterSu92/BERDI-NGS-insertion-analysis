@@ -472,12 +472,12 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     missing_filt_seq +=1
                     bar = re.search('[AGCT]+',str(aln_data[0][1].seq)) #search forwards through reverse complement of PE read, find first base that aligned.
                     bar_pe_r = re.search('[AGCT]+',str(aln_data[0][1].seq)[-1:0:-1]) #search backwards through PE read, find first base that aligned
-                    bar_f = re.search('[AGCT]+',str(aln_data[0][0].seq))
+                    bar_f = re.search('[AGCT]+',str(aln_data[0][0].seq)) #search forwards through fwd read to find first base that aligned
                     bar_f_r = re.search('[AGCT]+',str(aln_data[0][0].seq)[-1:0:-1]) # search backwards through fwd read to find the first base that aligned
                     # if bar.span()[0] < bar_f.span()[0]: #this is if the fwd strand search goes longer until it hits an aligned base
                     match_coord_start = max([bar.span()[0],bar_f.span()[0]]) #coordinates start from the first base of the forward read that aligned with the paired end read, sometimes the paired end read has bases earlier
                     match_coord_end = min([(len(aln_data[0][0].seq)-bar_f_r.span()[0]),(len(aln_data[0][0].seq)-bar_pe_r.span()[0])])# coordinates end at the last aligned base in the forward read such that no bases present on the PE read but not fwd make it
-                    search_oligo = str(aln_data[0][0].seq)[match_coord_start:match_coord_end] #coordinates are currently still based off the alignment alone; search oligo is only on forward base now
+                    search_oligo = str(aln_data[0][0].seq)[match_coord_start:match_coord_end] #coordinates are currently still based off the alignment alone; search oligo is only on forward read now
                     scores = score_cutoff_by_length(search_oligo,bin_scores)
                     lo_cutoff = scores[0]
                     hi_cutoff = scores[1]
@@ -556,12 +556,11 @@ def insertion_chunks(final_seqs):
     discarded_reads = 0
 
     for i in range(len(final_seqs)):
-           end_pos = 0 #forward search starts at the beginning
+           # end_pos = 0 #forward search starts at the beginning
            #insert_site = 0
            num_chunks = 0
            seq_chunks = []
            insert_site = 0
-           
            total_len = 0
            #print('Current sequence: ' +str(i+1)) #keep this only for test sequences
            if str(final_seqs[i].seq)[-1] == '-':
@@ -569,38 +568,38 @@ def insertion_chunks(final_seqs):
               end_dashes +=1
               continue
            while total_len < len(final_seqs[i].seq):
-              bar=re.search('[AGCT]+',str(final_seqs[i].seq)[end_pos:-1:1]) #forward search: from start to finish
+              bar=re.search('[AGCT]+',str(final_seqs[i].seq)) #forward search: from start to finish
               if str(type(bar)) == "<type 'NoneType'>":
                    #If this happens, we'll know the end was reached without finding a suitable insertion
                     reads_at_end += 1
                     break
 
-              if end_pos >= 300: #this prevents a nonphysical insertion from happening
-                    end_pos = end_pos-4
+              if insert_site >= 300: #this prevents a nonphysical insertion from happening
+                    insert_site = insert_site-4
                     insertions.append(insert_site)
                     break
-              elif abs((bar.span()[1]-bar.span()[0])+1) == (len(final_seqs[i].seq.lstrip('-').strip('-'))): #perfect match occurs
+              elif abs((bar.span()[1]-bar.span()[0])) == (len(final_seqs[i].seq.lstrip('-').strip('-'))): #perfect match occurs
                      insert_site = bar.span()[0] #forward search stops at the first base of the DNA chunk
                      insertions.append(insert_site)
                      chunk_dict.update({insert_site:seq_chunks})
                      seq_chunks.append(bar.span()[1]-bar.span()[0])
                      perfect_matches +=1
                      break
-              elif abs((bar.span()[1]-bar.span()[0])) <= chunk_size: #if a chunk is small enough, set index correspondingly but keep searching through the alignment
-                     num_chunks += 1
-                     end_pos += bar.span()[1]
-                     insert_site += bar.span()[1]
-                     span_length = abs(bar.span()[1]-bar.span()[0])
-                     seq_chunks.append(span_length)
-                     total_len += bar.span()[1]
-                     continue
-              elif (abs((bar.span()[1]-bar.span()[0])) > chunk_size) and (abs((bar.span()[1]-bar.span()[0])) != len(final_seqs[i].seq.lstrip('-'))-total_len): #if chunk too large, get rid of the alignment
-                     discarded_reads += 1
-                     large_chunk_reads +=1
-                     break
-              elif len(final_seqs[i].seq.strip('-')) != len(final_seqs[i].seq.lstrip('-')): #gets rid of alignments with gaps at the 3' end
-                     discarded_reads +=1
-                     break
+              # elif abs((bar.span()[1]-bar.span()[0])) <= chunk_size: #if a chunk is small enough, set index correspondingly but keep searching through the alignment
+              #        num_chunks += 1
+              #        end_pos += bar.span()[1]
+              #        insert_site += bar.span()[1]
+              #        span_length = abs(bar.span()[1]-bar.span()[0])
+              #        seq_chunks.append(span_length)
+              #        total_len += bar.span()[1]
+              #        continue
+              # elif (abs((bar.span()[1]-bar.span()[0])) > chunk_size) and (abs((bar.span()[1]-bar.span()[0])) != len(final_seqs[i].seq.lstrip('-'))-total_len): #if chunk too large, get rid of the alignment
+              #        discarded_reads += 1
+              #        large_chunk_reads +=1
+              #        break
+              # elif len(final_seqs[i].seq.strip('-')) != len(final_seqs[i].seq.lstrip('-')): #gets rid of alignments with gaps at the 3' end
+              #        discarded_reads +=1
+              #        break
               elif num_chunks > max_chunks: #too many chunks leads to an alignment being thrown out. 
                      discarded_reads += 1
                      max_chunks_exceeded +=1
@@ -617,7 +616,6 @@ def insertion_chunks(final_seqs):
     print(str(end_dashes)+' reads had end dashes')
     print(str(perfect_matches)+' reads are perfect matches')
     print(str(other_scenario) +' reads did not satisfy any of the criteria')
-
 
     return chunk_dict, insertions
     
