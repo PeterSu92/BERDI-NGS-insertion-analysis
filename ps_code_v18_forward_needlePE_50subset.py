@@ -385,7 +385,9 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     f_list = []
     pe_list = []
     missing_filt_seq = 0 #number of forward reads missing the back filter sequence
-    missing_pe_filt_seq = 0 #number of PE reads missing the scar (shouldn't happen?)
+    # missing_pe_filt_seq = 0 #number of PE reads missing the scar (shouldn't happen?)
+    missing_align = 0
+    nonphys_overlap = 0
     too_small_chunk = 0 #number of forward reads that had too small of a chunk to be kept
     full_align = 0 #number of reads where the last base of the forward read aligned to the PE read
     copied_too_short = 0 # if for some reason the copied region is less than the length of the smallest primer
@@ -447,8 +449,6 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     match_coord_start = 0
                     match_coord_end = 0 
                     match_len = 0
-                    missing_align = 0
-                    nonphys_overlap = 0
                     f = 0
                     if (aln_data[0].annotations['score'] >= lo_cutoff) and (aln_data[0].annotations['score'] <= hi_cutoff):
                         matched_seq_list.append(copied)
@@ -476,8 +476,8 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     bar_f = re.search('[AGCT]+',str(aln_data[0][0].seq)) #search forwards through fwd read to find first base that aligned
                     bar_f_r = re.search('[AGCT]+',str(aln_data[0][0].seq)[-1:0:-1]) # search backwards through fwd read to find the first base that aligned
                     # if bar.span()[0] < bar_f.span()[0]: #this is if the fwd strand search goes longer until it hits an aligned base
-                    match_coord_start = max([bar.span()[0],bar_f.span()[0]]) #coordinates start from the first base of the forward read that aligned with the paired end read, sometimes the paired end read has bases earlier
-                    match_coord_end = min([(len(aln_data[0][0].seq)-bar_f_r.span()[0]),(len(aln_data[0][0].seq)-bar_pe_r.span()[0])])# coordinates end at the last aligned base in the forward read such that no bases present on the PE read but not fwd make it
+                    match_coord_start = max([bar.span()[0],bar_f.span()[0]]) #coordinates start from the first base of the forward read that aligned with the paired end read, sometimes the paired end read has bases earlier so want highest coord
+                    match_coord_end = min([(len(aln_data[0][0].seq)-bar_f_r.span()[0]),(len(aln_data[0][0].seq)-bar_pe_r.span()[0])])# coordinates end at the last aligned base such that no bases present on one read but not the other make it
                     search_oligo = str(aln_data[0][0].seq)[match_coord_start:match_coord_end] #coordinates are currently still based off the alignment alone; search oligo is only on forward read now
                     scores = score_cutoff_by_length(search_oligo,bin_scores)
                     lo_cutoff = scores[0]
@@ -489,7 +489,9 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     if len(search_oligo) < 12: # this number is arbitrary right now
                         too_small_chunk += 1
                         continue
-                    bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
+                    # elif len(search_oligo) > 20: #sometimes the entire region aligns, so I truncate it to just 20 bases for higher chance of alignment in the event of a mismatch surviving score filtering
+                    #     search_oligo = search_oligo[len(search_oligo)-12:]
+                    # bar1 = re.search(search_oligo,str(s.seq)) #find the aligned region in the forward sequence
                     if str(type(bar1)) == "<type 'NoneType'>": #if the aligned region can't be found in the forward read
                         missing_align += 1
                         continue
@@ -497,12 +499,9 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                          raise ValueError('End coordinate is '+str(bar1.span()[1])+' but sequence is '+str(len(s.seq)))
                     elif bar1.span()[1] == len(s.seq):
                         full_align += 1
-                        # print ("bar5.span()[1] is "+str(bar5.span()[1])+ " bar2.span()[0] is "+ str(bar2.span()[0]))
-                        # pe_append = pe_read_rev[bar5.span()[1]:bar2] #hopefully this returns the part of the paired-end read from the last base of alignment to the scar
-                        # attempt_append += 1
-                    temp_phred = s.letter_annotations.values()[0][0:bar1.span()[1]] #temporarily dump Phred quality scores into a list
+                    temp_phred = s.letter_annotations.values()[0][0:50] #temporarily dump Phred quality scores into a list. Only need the first 50 bases since this is forward searching
                     s.letter_annotations = {} #clear the letter annotations so that the sequence can be changed
-                    s.seq = s.seq[0:bar1.span()[1]] #return only the part of the forward read up to the end of the aligned region. This way, no junk gets kept in the case of a short read
+                    s.seq = s.seq[0:50] #return only the part of the forward read up to the end of the aligned region. This way, no junk gets kept in the case of a short read
                     s.letter_annotations = {'phred_quality':temp_phred} #now put back the new phred quality score list
                     matched_seq_list.append(s)
 
@@ -513,11 +512,16 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     print ("")
     
     count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches
-    print(str(missing_filt_seq)+' reads were missing the reverse primer')
-    print(str(copied_too_short)+ ' reads had too small of a copied region')
-    print(str(missing_align)+ ' reads did not have a perfect aligned region')
-    print(str(too_small_chunk)+ ' reads had too small of an aligned region')
-    print(str(full_align)+ ' forward reads matched all the way to the last base')
+
+    with open(outp_file_loc+outp_name+'_PE_statistics.csv','w') as file1:
+        # should result in rxn1_828_829_F_results.csv as output
+        writer = csv.writer(file1)
+        writer.writerow(str(missing_filt_seq)+' reads were missing the reverse primer')
+        writer.writerow(str(copied_too_short)+ ' reads had too small of a copied region')
+        writer.writerow(str(missing_align)+ ' reads did not have a perfect aligned region, probably a mismatch')
+        writer.writerow(str(too_small_chunk)+ ' reads had too small of an aligned region')
+        writer.writerow(str(full_align)+ ' forward reads matched all the way to the last base')
+        file1.close()
     # print(str(nonphys_overlap)+' reads had part of the scar or some nonphysical overlap')
     # print(str(bad_quality_reads_first)+ 'reads had poor quality in the region to be appended')
     # print(str(bad_quality_reads_later)+' reads had overall poor quality in the final sequence')
@@ -540,12 +544,13 @@ def insertion_chunks(final_seqs):
         chunk_dict - dict of chunks of continuous DNA segments per read.
         Each entry has key 'insert_site' with a corresponding value of a list of
         the lengths of each continuous chunk (starting from the first aligned bit)
-        insertions - list of positions where the first chunk of continuous DNA began
+        insertions_corrected - list of positions where the first chunk of continuous DNA began
         for each particular read. Will have redundant entries in most cases, as
         our method often results in multiple insertions at any given site.
     '''
     chunk_dict = {}
     insertions = []
+    insertions_corrected = []
     chunk_size = 0
     max_chunks = 0
     reads_at_end = 0
@@ -575,10 +580,10 @@ def insertion_chunks(final_seqs):
                     reads_at_end += 1
                     break
 
-              if insert_site >= 300: #this prevents a nonphysical insertion from happening
-                    insert_site = insert_site-4
-                    insertions.append(insert_site)
-                    break
+              # if insert_site >= 300: #this prevents a nonphysical insertion from happening
+              #       insert_site = insert_site-4
+              #       insertions.append(insert_site)
+              #       break
               elif abs((bar.span()[1]-bar.span()[0])) == (len(final_seqs[i].seq.lstrip('-').strip('-'))): #perfect match occurs
                      insert_site = bar.span()[0] #forward search stops at the first base of the DNA chunk
                      insertions.append(insert_site)
@@ -608,8 +613,9 @@ def insertion_chunks(final_seqs):
          
               else: #This should not happen now, but if it does, will document it
                     other_scenario +=1
+                    discarded_reads += 1
                     break
-
+    insertions_corrected = [s+4 for s in insertions] #correcting for the fact that this is the back end of the duplicated 5 bp. only 4 is added since we define insert site as inserting after that position
     print (str(reads_at_end)+ ' reads reached the end without a suitable insertion')    
     print (str(discarded_reads)+' reads were discarded :(')
     print(str(large_chunk_reads)+' reads had too large of a chunk')
@@ -635,7 +641,7 @@ def insertion_site_freq(final_seqs,template,reaction_number):
         coverage: int,% of all possible sites that have at least one insertion
     '''
     
-    chunky_dict = insertion_chunks(final_seqs)
+    chunky_dict = insertion_chunks(final_seqs,template)
     insert_dict = {} #dict consisting of insertion site: insertion count pairs
     insertion_list = chunky_dict[1]
     #insertion_frequencies = []
