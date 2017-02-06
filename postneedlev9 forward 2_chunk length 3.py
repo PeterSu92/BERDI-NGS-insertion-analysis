@@ -250,14 +250,14 @@ window4 = [4,8,12,16]
 base_add = [-29,304,308,816]
 add_this = 0
 
-    if rxn_num in window1:
-        add_this = base_add[0]
-    elif rxn_num in window2:
-        add_this = base_add[1]
-    elif rxn_num in window3:
-        add_this = base_add[2]
-    elif rxn_num in window4:
-        add_this = base_add[3]
+if rxn_num in window1:
+    add_this = base_add[0]
+elif rxn_num in window2:
+    add_this = base_add[1]
+elif rxn_num in window3:
+    add_this = base_add[2]
+elif rxn_num in window4:
+    add_this = base_add[3]
 
 real_insertions = [s+add_this for s in real_insertion_list]
 print(str(coverage)+"% coverage","total insertions "+str(len(list(insert_dict1.keys()))))
