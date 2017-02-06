@@ -215,7 +215,7 @@ def insertion_site_freq(final_seqs):
 #template_file = '../temptemplate.fa'
 #template = str(list(SeqIO.parse(template_file,'fasta'))[0].seq)
 ### Append this prefix as desired ###
-output_file_prefix = 'PCR2 v1'
+output_file_prefix = 'v17 perfect insertions'
 #Bin cutoff scores
 #normal_bin_scores = [[42,251],[205,501],[446,751],[687,1001],[928,1251],[1100,1500]]
 bin_scores = [[30,251],[60,501],[250,751],[500,1001],[750,1251],[1000,1500],[1400,1750]]
@@ -254,7 +254,25 @@ coverage = insertions1[1]
 
 real_insertion_list = list(insert_dict1.keys())
 #varies depending on portion of MBP used as template
-real_insertions = [s+304 for s in real_insertion_list]
+rxn_num = int(os.getcwd()[-1])
+window1 = [1,5,9,13]
+window2 = [2,6,10,14]
+window3 = [3,7,11,15]
+window4 = [4,8,12,16]
+base_add = [-29,304,308,816]
+add_this = 0
+
+    if rxn_num in window1:
+        add_this = base_add[0]
+    elif rxn_num in window2:
+        add_this = base_add[1]
+    elif rxn_num in window3:
+        add_this = base_add[2]
+    elif rxn_num in window4:
+        add_this = base_add[3]
+
+real_insertions = [s+add_this for s in real_insertion_list]
+# real_insertions = [s+304 for s in real_insertion_list]
 print(str(coverage)+"% coverage","total insertions "+str(len(list(insert_dict1.keys()))))
 with open(output_file_prefix+'_results.csv','w') as file:
         # should result in rxn1_828_829_F_results.csv as output
