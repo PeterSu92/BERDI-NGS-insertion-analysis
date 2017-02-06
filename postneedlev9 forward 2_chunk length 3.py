@@ -123,10 +123,10 @@ def insertion_chunks(final_seqs):
                    #If this happens, we'll know the end was reached without finding a suitable insertion
                     reads_at_end += 1
                     break
-              if insert_site >= 300: #this prevents a nonphysical insertion from happening
-                    insert_site = insert_site-4
-                    insertions.append(insert_site)
-                    break
+              # if insert_site >= 300: #this prevents a nonphysical insertion from happening
+              #       insert_site = insert_site-4
+              #       insertions.append(insert_site)
+              #       break
               elif abs((bar.span()[1]-bar.span()[0])) == (len(final_seqs[i].seq.lstrip('-').strip('-'))): #perfect match occurs
                      insert_site = bar.span()[0] #forward search stops at the first base of the DNA chunk
                      insertions.append(insert_site)
@@ -152,7 +152,7 @@ def insertion_chunks(final_seqs):
               elif num_chunks > max_chunks: #too many chunks leads to an alignment being thrown out. 
                      discarded_reads += 1
                      max_chunks_exceeded +=1
-                     break
+                     break 
          
               else: #This should not happen now, but if it does, will document it
                     other_scenario +=1
