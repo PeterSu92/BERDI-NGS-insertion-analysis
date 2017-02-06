@@ -242,7 +242,7 @@ coverage = insertions1[1]
 
 real_insertion_list = list(insert_dict1.keys())
 #varies depending on portion of MBP used as template
-rxn_num = int(os.getcwd()[-1])
+rxn_num = int(os.getcwd()[os.getcwd().find('PCR')+3:])
 window1 = [1,5,9,13]
 window2 = [2,6,10,14]
 window3 = [3,7,11,15]
