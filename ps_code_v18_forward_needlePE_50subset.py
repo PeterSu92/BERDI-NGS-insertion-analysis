@@ -758,13 +758,13 @@ def main(argv):
 
     print(str(coverage)+"% coverage","total insertions"+str(len(list(insert_dict1.keys()))))
 
-    fig1 = plt.figure(figsize = (30,20))
-    ax = fig1.add_subplot(1,1,1)
-    ax.scatter(real_insertions,list(insert_dict1.values()))
-    max_frequency = max(list(insert_dict1.values()))
-    figplot_scatter(ax,template,max_frequency)
-    # Append filename below as desired. 
-    fig1.savefig(output_file_prefix+'_figure.pdf')
+    # fig1 = plt.figure(figsize = (30,20))
+    # ax = fig1.add_subplot(1,1,1)
+    # ax.scatter(real_insertions,list(insert_dict1.values()))
+    # max_frequency = max(list(insert_dict1.values()))
+    # figplot_scatter(ax,template,max_frequency)
+    # # Append filename below as desired. 
+    # fig1.savefig(output_file_prefix+'_figure.pdf')
     # should result in rxn1_828_829_F_figure.pdf as output
 
     # This code below is commented out because of the file name. Change as desired
