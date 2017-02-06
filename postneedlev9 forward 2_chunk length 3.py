@@ -204,7 +204,7 @@ def insertion_site_freq(final_seqs):
 #template_file = '../temptemplate.fa'
 #template = str(list(SeqIO.parse(template_file,'fasta'))[0].seq)
 ### Append this prefix as desired ###
-output_file_prefix = 'PCR3 4 chunk'
+output_file_prefix = 'v17 perfect insertions'
 #Bin cutoff scores
 bin_scores = [[42,251],[205,501],[446,751],[687,1001],[928,1251],[1100,1500],[1400,1750]]
 final_sequences = []
