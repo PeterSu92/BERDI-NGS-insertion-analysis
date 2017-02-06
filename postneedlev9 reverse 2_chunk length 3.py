@@ -105,7 +105,7 @@ def insertion_chunks(final_seqs):
     # else:
     #     print('Error your numbering is terrible')
     discarded_reads = 0
-    chunk_size = 3
+    chunk_size = 0
     reads_at_end = 0
     large_chunk_reads = 0
     upstream_dashes = 0
@@ -117,7 +117,7 @@ def insertion_chunks(final_seqs):
        insert_site = 0
        num_chunks = 0
        seq_chunks = []
-       max_chunks = 2
+       max_chunks = 0
        total_len = 0
        #print('Current sequence: ' +str(i+1))
        if str(final_seqs[i].seq)[0] == '-':
