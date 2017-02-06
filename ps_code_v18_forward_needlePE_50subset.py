@@ -515,12 +515,11 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
 
     with open('PE_statistics.csv','w') as file1:
         # should result in rxn1_828_829_F_results.csv as output
-        writer = csv.writer(file1)
-        writer.writerow(str(missing_filt_seq)+' reads were missing the reverse primer')
-        writer.writerow(str(copied_too_short)+ ' reads had too small of a copied region')
-        writer.writerow(str(missing_align)+ ' reads did not have a perfect aligned region, probably a mismatch')
-        writer.writerow(str(too_small_chunk)+ ' reads had too small of an aligned region')
-        writer.writerow(str(full_align)+ ' forward reads matched all the way to the last base')
+        file1.write(str(missing_filt_seq)+' reads were missing the reverse primer')
+        file1.write(str(copied_too_short)+ ' reads had too small of a copied region')
+        file1.write(str(missing_align)+ ' reads did not have a perfect aligned region, probably a mismatch')
+        file1.write(str(too_small_chunk)+ ' reads had too small of an aligned region')
+        file1.write(str(full_align)+ ' forward reads matched all the way to the last base')
         file1.close()
     # print(str(nonphys_overlap)+' reads had part of the scar or some nonphysical overlap')
     # print(str(bad_quality_reads_first)+ 'reads had poor quality in the region to be appended')
@@ -624,7 +623,7 @@ def insertion_chunks(final_seqs):
     print(str(perfect_matches)+' reads are perfect matches')
     print(str(other_scenario) +' reads did not satisfy any of the criteria')
 
-    return chunk_dict, insertions
+    return chunk_dict, insertions_corrected
     
 def insertion_site_freq(final_seqs,template,reaction_number):
     '''

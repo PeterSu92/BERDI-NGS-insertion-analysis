@@ -536,12 +536,11 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches\
         with open('PE_statistics.csv','w') as file1:
         # should result in rxn1_828_829_F_results.csv as output
-        writer = csv.writer(file1)
-        writer.writerow(str(missing_filt_seq)+' reads were missing the reverse primer')
-        writer.writerow(str(copied_too_short)+ ' reads had too small of a copied region')
-        writer.writerow(str(missing_align)+ ' reads did not have a perfect aligned region, probably a mismatch')
-        writer.writerow(str(too_small_chunk)+ ' reads had too small of an aligned region')
-        writer.writerow(str(full_align)+ ' forward reads matched all the way to the last base')
+        file1.write(str(missing_filt_seq)+' reads were missing the reverse primer')
+        file1.write(str(copied_too_short)+ ' reads had too small of a copied region')
+        file1.write(str(missing_align)+ ' reads did not have a perfect aligned region, probably a mismatch')
+        file1.write(str(too_small_chunk)+ ' reads had too small of an aligned region')
+        file1.write(str(full_align)+ ' forward reads matched all the way to the last base')
         file1.close()
     # print(str(co_ct)+' forward reads had the coordinates of the PE read nearby')
     # print(str(missing_filt_seq)+' reads were missing the scar')
