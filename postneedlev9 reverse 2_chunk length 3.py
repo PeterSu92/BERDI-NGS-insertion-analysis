@@ -153,7 +153,7 @@ def insertion_chunks(final_seqs):
                 span_length = abs(bar.span()[1]-bar.span()[0])
                 seq_chunks.append(span_length)
                 total_len += bar.span()[1]
-                #print('total length: '+str(total_len))
+                #print('total length: '+str(total_len)) 
                 continue
               #elif abs((bar.span()[1]-bar.span()[0])+1) == (len(final_seqs[i].seq.strip('-'))-total_len):
           elif (abs((bar.span()[1]-bar.span()[0])) > chunk_size) and (abs((bar.span()[1]-bar.span()[0])+1) != (len(final_seqs[i].seq.strip('-'))-total_len)): #this gets rid of sequences with big chunks
