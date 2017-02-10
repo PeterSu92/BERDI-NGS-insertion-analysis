@@ -12,7 +12,6 @@ import time
 import uuid
 import random
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
 import glob
 import csv
@@ -20,8 +19,6 @@ from Bio import AlignIO, SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.Emboss.Applications import NeedleCommandline
-
-
 
 
 def cull_alignments(aln_data, lo_cutoff, hi_cutoff):
@@ -46,7 +43,7 @@ def cull_alignments(aln_data, lo_cutoff, hi_cutoff):
                             new_seqs[-1].annotations['alnscore'] = alignment.annotations['score']
         return new_seqs
         
-def insertion_chunks(final_seqs,template):
+def insertion_chunks(final_seqs):
     '''
     Should create a list of contiguous stretches of DNA for each sequence in
     new_seqs
@@ -54,7 +51,6 @@ def insertion_chunks(final_seqs,template):
     Input:
         final_seqs - list of SeqRecord objects containing the filtered sequences from the 
         EMBOSS needle alignment algorithm. 
-        template - str, DNA sequence of the template
         
     Outputs:
         chunk_dict - dict of chunks of continuous DNA segments per read.
@@ -69,31 +65,20 @@ def insertion_chunks(final_seqs,template):
     insertions_corrected = []
     reads_at_end = 0
     large_chunk_reads = 0
-    poorly_sized_read = 0
     perfect_matches = 0
     other_scenario = 0
     discarded_reads = 0
 
     for i in final_seqs:
-           # end_pos = 0 #forward search starts at the beginning
-           #insert_site = 0
            num_chunks = 0
            seq_chunks = []
            insert_site = 0
-           total_len = 0
-           #print('Current sequence: ' +str(i+1)) #keep this only for test sequences
-           if len(str(i.seq)) != len(template):
-              poorly_sized_read +=1
-              continue
            bar=re.search('[AGCT]+',str(i.seq)) #forward search: from start to finish
            if str(type(bar)) == "<type 'NoneType'>":
                    #If this happens, we'll know the end was reached without finding a suitable insertion
               reads_at_end += 1
               continue
-              # if insert_site >= 300: #this prevents a nonphysical insertion from happening
-              #       insert_site = insert_site-4
-              #       insertions.append(insert_site)
-              #       break
+
            elif abs((bar.span()[1]-bar.span()[0])) == (len(i.seq.strip('-'))): #perfect match occurs
               insert_site = bar.span()[0] #forward search stops at the first base of the DNA chunk
               insertions.append(insert_site)
@@ -101,25 +86,19 @@ def insertion_chunks(final_seqs,template):
               seq_chunks.append(bar.span()[1]-bar.span()[0])
               perfect_matches +=1
               continue
-          # elif num_chunks > max_chunks: #too many chunks leads to an alignment being thrown out. 
-          #            discarded_reads += 1
-          #            max_chunks_exceeded +=1
-          #            break 
-         
+
            else: #This should not happen now, but if it does, will document it
               other_scenario +=1
-                    # discarded_reads += 1
               continue
     insertions_corrected = [s+4 for s in insertions] #must add 4 to all forward searching regex searches to account for the duplication 
     # (and since the insertion is defined as inserting after the indexed base)
     print (str(reads_at_end)+ ' reads reached the end without a suitable insertion')    
-    print(str(poorly_sized_read)+' reads were different lengths than the template')
     print(str(perfect_matches)+' reads are perfect matches')
     print(str(other_scenario) +' reads did not satisfy any of the criteria')
 
     return chunk_dict, insertions_corrected
     
-def insertion_site_freq(final_seqs,template):
+def insertion_site_freq(final_seqs):
     '''
     Calculates the frequency of insertions at all sites in a template sequence
     
@@ -134,7 +113,7 @@ def insertion_site_freq(final_seqs,template):
         coverage: int,% of all possible sites that have at least one insertion
     '''
     
-    chunky_dict = insertion_chunks(final_seqs,template)
+    chunky_dict = insertion_chunks(final_seqs)
     insert_dict = {} #dict consisting of insertion site: insertion count pairs
     insertion_list = chunky_dict[1]
     #insertion_frequencies = []
@@ -150,8 +129,6 @@ def insertion_site_freq(final_seqs,template):
 ## Part that gets run ###
 
 
-template_file = 'temptemplate.fa'
-template = str(list(SeqIO.parse(template_file,'fasta'))[0].seq)
 ### Append this prefix as desired ###
 output_file_prefix = (os.getcwd()[os.getcwd().find('PCR')-3:])
 #Bin cutoff scores
@@ -163,15 +140,13 @@ for i in range(len(needle_files)):
     aln_data = AlignIO.parse(open(needle_files[i]),"emboss")
     # for some reason this generator stuff is not working for me
     aln_data_list = list(aln_data)
-    #print('Sequences in bin '+str(i+1)+' before alignment: '+str(len(aln_data_list)))
     new_seqs = cull_alignments(aln_data_list, lo_cutoff=bin_scores[i][0], hi_cutoff=bin_scores[i][1])
     print('Sequences in bin '+str(i+1)+' after alignment: '+str(len(new_seqs)))
     newseqs.append(new_seqs)
 
-    insertions2 = insertion_site_freq(new_seqs,template)
+    insertions2 = insertion_site_freq(new_seqs)
     insert_dict2 = insertions2[0] #avoiding using similar names in the workspace
     real_insertion_list = list(insert_dict2.keys())
-    # print('Insertions in bin '+str(i+1)+': '+str(len(real_insertion_list)))
     if len(real_insertion_list) == 0:
         print('Insertions in bin '+str(i+1)+': 0')
     else:
@@ -183,7 +158,7 @@ for i in range(len(needle_files)):
 final_sequences = [item for sublist in newseqs for item in sublist]
 len_list = [len(str(s.seq)) for s in final_sequences]
 print ('min_length ' + str(min(len_list)) + '; ' + 'max_length' + str(max(len_list)))
-insertions1 = insertion_site_freq(final_sequences,template)
+insertions1 = insertion_site_freq(final_sequences)
 insert_dict1 = insertions1[0] #avoiding using similar names in the workspace
 #Coverage amended here to show coverage over entire sequence of MBP
 coverage = insertions1[1]
