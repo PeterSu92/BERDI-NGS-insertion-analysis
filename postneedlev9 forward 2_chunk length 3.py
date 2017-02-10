@@ -74,7 +74,7 @@ def cull_alignments(aln_data, lo_cutoff, hi_cutoff):
 #                                             gapextend=gapextend, outfile=ofilen)
 #    needle_cline()
 #Insertion site functions and code
-def insertion_chunks(final_seqs):
+def insertion_chunks(final_seqs,template):
     '''
     Should create a list of contiguous stretches of DNA for each sequence in
     new_seqs
@@ -99,13 +99,13 @@ def insertion_chunks(final_seqs):
     max_chunks = 0
     reads_at_end = 0
     large_chunk_reads = 0
-    end_dashes = 0
+    poorly_sized_read = 0
     perfect_matches = 0
     max_chunks_exceeded = 0
     other_scenario = 0
     discarded_reads = 0
 
-    for i in range(len(final_seqs)):
+    for i in final_seqs:
            # end_pos = 0 #forward search starts at the beginning
            #insert_site = 0
            num_chunks = 0
@@ -113,63 +113,47 @@ def insertion_chunks(final_seqs):
            insert_site = 0
            total_len = 0
            #print('Current sequence: ' +str(i+1)) #keep this only for test sequences
-           if str(final_seqs[i].seq)[-1] == '-':
-              discarded_reads += 1
-              end_dashes +=1
+           if len(str(final_seqs[i].seq)) != len(template):
+              poorly_sized_read +=1
               continue
-           while total_len < len(final_seqs[i].seq):
-              bar=re.search('[AGCT]+',str(final_seqs[i].seq)) #forward search: from start to finish
-              if str(type(bar)) == "<type 'NoneType'>":
+           bar=re.search('[AGCT]+',str(i.seq)) #forward search: from start to finish
+           if str(type(bar)) == "<type 'NoneType'>":
                    #If this happens, we'll know the end was reached without finding a suitable insertion
-                    reads_at_end += 1
-                    break
+              reads_at_end += 1
+              continue
               # if insert_site >= 300: #this prevents a nonphysical insertion from happening
               #       insert_site = insert_site-4
               #       insertions.append(insert_site)
               #       break
-              elif abs((bar.span()[1]-bar.span()[0])) == (len(final_seqs[i].seq.lstrip('-').strip('-'))): #perfect match occurs
+           elif abs((bar.span()[1]-bar.span()[0])) == (len(final_seqs[i].seq.strip('-'))): #perfect match occurs
                      insert_site = bar.span()[0] #forward search stops at the first base of the DNA chunk
                      insertions.append(insert_site)
                      chunk_dict.update({insert_site:seq_chunks})
                      seq_chunks.append(bar.span()[1]-bar.span()[0])
                      perfect_matches +=1
                      break
-              # elif abs((bar.span()[1]-bar.span()[0])) <= chunk_size: #if a chunk is small enough, set index correspondingly but keep searching through the alignment
-              #        num_chunks += 1
-              #        end_pos += bar.span()[1]
-              #        insert_site += bar.span()[1]
-              #        span_length = abs(bar.span()[1]-bar.span()[0])
-              #        seq_chunks.append(span_length)
-              #        total_len += bar.span()[1]
-              #        continue
-              # elif (abs((bar.span()[1]-bar.span()[0])) > chunk_size) and (abs((bar.span()[1]-bar.span()[0])) != len(final_seqs[i].seq.lstrip('-'))-total_len): #if chunk too large, get rid of the alignment
-              #        discarded_reads += 1
-              #        large_chunk_reads +=1
-              #        break
-              # elif len(final_seqs[i].seq.strip('-')) != len(final_seqs[i].seq.lstrip('-')): #gets rid of alignments with gaps at the 3' end
-              #        discarded_reads +=1
-              #        break
-              elif num_chunks > max_chunks: #too many chunks leads to an alignment being thrown out. 
-                     discarded_reads += 1
-                     max_chunks_exceeded +=1
-                     break 
+          # elif num_chunks > max_chunks: #too many chunks leads to an alignment being thrown out. 
+          #            discarded_reads += 1
+          #            max_chunks_exceeded +=1
+          #            break 
          
               else: #This should not happen now, but if it does, will document it
                     other_scenario +=1
-                    discarded_reads += 1
+                    # discarded_reads += 1
                     break
-    insertions_corrected = [s+4 for s in insertions]
+    insertions_corrected = [s+4 for s in insertions] #must add 4 to all forward searching regex searches to account for the duplication 
+    # (and since the insertion is defined as inserting after the indexed base)
     print (str(reads_at_end)+ ' reads reached the end without a suitable insertion')    
-    print (str(discarded_reads)+' reads were discarded :(')
-    print(str(large_chunk_reads)+' reads had too large of a chunk')
-    print(str(max_chunks_exceeded)+' reads had too many chunks')
-    print(str(end_dashes)+' reads had end dashes')
+    # print (str(discarded_reads)+' reads were discarded :(')
+    print(str(poorly_sized_read)+' reads were different lengths than the template')
+    # print(str(max_chunks_exceeded)+' reads had too many chunks')
+    # print(str(end_dashes)+' reads had end dashes')
     print(str(perfect_matches)+' reads are perfect matches')
     print(str(other_scenario) +' reads did not satisfy any of the criteria')
 
     return chunk_dict, insertions_corrected
     
-def insertion_site_freq(final_seqs):
+def insertion_site_freq(final_seqs,template):
     '''
     Calculates the frequency of insertions at all sites in a template sequence
     
@@ -184,7 +168,7 @@ def insertion_site_freq(final_seqs):
         coverage: int,% of all possible sites that have at least one insertion
     '''
     
-    chunky_dict = insertion_chunks(final_seqs)
+    chunky_dict = insertion_chunks(final_seqs,template)
     insert_dict = {} #dict consisting of insertion site: insertion count pairs
     insertion_list = chunky_dict[1]
     #insertion_frequencies = []
@@ -219,7 +203,7 @@ for i in range(len(needle_files)):
     print('Sequences in bin '+str(i+1)+' after alignment: '+str(len(new_seqs)))
     newseqs.append(new_seqs)
 
-    insertions2 = insertion_site_freq(new_seqs)
+    insertions2 = insertion_site_freq(new_seqs,template)
     insert_dict2 = insertions2[0] #avoiding using similar names in the workspace
     real_insertion_list = list(insert_dict2.keys())
     # print('Insertions in bin '+str(i+1)+': '+str(len(real_insertion_list)))
@@ -235,7 +219,7 @@ for i in range(len(needle_files)):
 final_sequences = [item for sublist in newseqs for item in sublist]
 len_list = [len(str(s.seq)) for s in final_sequences]
 print ('min_length ' + str(min(len_list)) + '; ' + 'max_length' + str(max(len_list)))
-insertions1 = insertion_site_freq(final_sequences)
+insertions1 = insertion_site_freq(final_sequences,template)
 insert_dict1 = insertions1[0] #avoiding using similar names in the workspace
 #Coverage amended here to show coverage over entire sequence of MBP
 coverage = insertions1[1]
