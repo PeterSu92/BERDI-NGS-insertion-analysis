@@ -12,7 +12,6 @@ import time
 import uuid
 import random
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
 import glob
 import csv
@@ -20,8 +19,6 @@ from Bio import AlignIO, SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.Emboss.Applications import NeedleCommandline
-
-
 
 
 def cull_alignments(aln_data, lo_cutoff, hi_cutoff):
@@ -46,33 +43,6 @@ def cull_alignments(aln_data, lo_cutoff, hi_cutoff):
                             new_seqs[-1].annotations['alnscore'] = alignment.annotations['score']
         return new_seqs
         
-#def alignment_filter(seqs,template, gapopen = 10, gapextend = 0.5, lo_cutoff = 300,hi_cutoff=1000):
-#    '''
-#         Aligns sequences to a template file and filters the aligned reads by score
-#         
-#         Inputs:
-#             seqs - list of SeqRecord objects
-#             template - str, DNA sequence of the template of interest
-#         Outputs:
-#             new_seqs - list of SeqRecord objects that survived the filtering
-#    '''
-#    # Save the template and sequences as temporary fasta files 
-#    template_f_name = 'temptemplate.fa'
-#    seqs_f_name = 'tempseq.fa'
-#            
-#    with open(seqs_f_name,'w') as sh:
-#        SeqIO.write(seqs,sh,'fastq')
-#                
-#    with open(template_f_name,'w') as temp_seq_file:
-#        # make temp sequence file for alignment
-#        temp_seq = SeqRecord(Seq(template),id='template',name = 'template')
-#        SeqIO.write(temp_seq,temp_seq_file,'fasta')
-#                
-#    # Generate alignment command, run the alignment
-#    ofilen = 'temp_'+str(uuid.uuid4())+'.needle'
-#    needle_cline = NeedleCommandline(asequence=template_f_name, bsequence=seqs_f_name, gapopen=gapopen,
-#                                             gapextend=gapextend, outfile=ofilen)
-#    needle_cline()
 #Insertion site functions and code
 def insertion_chunks(final_seqs,template):
     '''
@@ -93,17 +63,7 @@ def insertion_chunks(final_seqs,template):
         our method often results in multiple insertions at any given site.
     '''
     chunk_dict = {}
-
-        #check_list = []
     insertions = []
-    # if reaction_number in reverse_search:
-    #     end_pos_default = -1
-    #     final_pos = 0
-    # elif reaction_number in forward_search:
-    #     end_pos_default = 0
-    #     final_pos = -1
-    # else:
-    #     print('Error your numbering is terrible')
     discarded_reads = 0
     chunk_size = 0
     reads_at_end = 0
@@ -113,11 +73,8 @@ def insertion_chunks(final_seqs,template):
     max_chunks_exceeded = 0
     other_scenario = 0
     for i in final_seqs:
-       # end_pos = -1
        insert_site = 0
-       num_chunks = 0
        seq_chunks = []
-       max_chunks = 0
        total_len = 0
        add_one = 0
        #print('Current sequence: ' +str(i+1))
@@ -127,48 +84,15 @@ def insertion_chunks(final_seqs,template):
        #    upstream_dashes +=1
        #    continue
        bar=re.search('[AGCT]+',str(i.seq)[-1:0:-1])
-       # if str(type(bar)) == "<class 'NoneType'>":
-       #     #If this happens, we'll know the last base of the previous
-       #     # chunk was the insertion site, so we set it as such here.                
-       #     #if end_pos != 0: 
-       #     #    insert_site = end_pos
-       #        reads_at_end += 1
-       #          #insert_site = end_pos
-       #        insertions.append(end_pos)
-              # break
        if (abs(bar.span()[1]-bar.span()[0])+add_one) == len(i.seq.strip('-')): ##perfect match
               insert_site = len(template)-bar.span()[0]
               insertions.append(insert_site) #length of the entire alignment minus the length spanned before the first base
               chunk_dict.update({insert_site:seq_chunks})
               perfect_matches +=1
               continue
-          # elif abs((bar.span()[1]-bar.span()[0])) <= chunk_size: #if a chunk is small enough, set index correspondingly but keep searching through the alignment
-                
-          #       if num_chunks == 0:
-          #           end_pos = len(final_seqs[i].seq)-1-bar.span()[1]
-          #       else:
-          #           end_pos = end_pos-bar.span()[1]
-          #       num_chunks += 1
-          #       insert_site = insert_site-(bar.span()[1])
-          #       span_length = abs(bar.span()[1]-bar.span()[0])
-          #       seq_chunks.append(span_length)
-          #       total_len += bar.span()[1]
-          #       #print('total length: '+str(total_len)) 
-          #       continue
-              #elif abs((bar.span()[1]-bar.span()[0])+1) == (len(final_seqs[i].seq.strip('-'))-total_len):
-          # elif (abs((bar.span()[1]-bar.span()[0])) > chunk_size) and (abs((bar.span()[1]-bar.span()[0])) != (len(final_seqs[i].seq.strip('-'))-total_len)): #this gets rid of sequences with big chunks
-          #       discarded_reads += 1
-          #       large_chunk_reads +=1
-                
-          #       break
-       elif (bar.span()[1]-bar.span()[0]) > len(i.seq.strip('-')): #too many chunks leads to alignment being discarded
-          #       discarded_reads +=1
-              max_chunks_exceeded +=1
-              continue
 
        else: #This should not happen now, but if it does, will document it
               other_scenario +=1
-              # print (str((abs(bar.span()[1]-bar.span()[0])+add_one))+' , '+ str(len(i.seq.strip('-'))))
               continue
     
     print (str(reads_at_end)+ ' reads reached the end without a suitable insertion')    
