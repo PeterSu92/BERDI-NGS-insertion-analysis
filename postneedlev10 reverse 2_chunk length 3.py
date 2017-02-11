@@ -80,9 +80,6 @@ def insertion_chunks(final_seqs,template):
        #print('Current sequence: ' +str(i+1))
        if str(i.seq)[0] != '-':
             add_one = 1
-       #    discarded_reads += 1
-       #    upstream_dashes +=1
-       #    continue
        bar=re.search('[AGCT]+',str(i.seq)[-1:0:-1])
        if (abs(bar.span()[1]-bar.span()[0])+add_one) == len(i.seq.strip('-')): ##perfect match
               insert_site = len(template)-bar.span()[0]
@@ -185,7 +182,7 @@ window1 = [1,5,9,13]
 window2 = [2,6,10,14]
 window3 = [3,7,11,15]
 window4 = [4,8,12,16]
-base_add = [-29,304,308,816]
+base_add = [-29,304,303,812]
 add_this = 0
 
 if rxn_num in window1:
