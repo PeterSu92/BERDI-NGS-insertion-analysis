@@ -15,7 +15,6 @@ import time
 import uuid
 import random
 import numpy as np
-#import matplotlib.pyplot as plt
 import pandas as pd
 import csv
 from Bio import AlignIO, SeqIO
@@ -534,7 +533,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     print ("")
     
     count_list.extend([co_ct,aln_ct]) #keep track of number of seqs with coord and align matches\
-        with open('PE_statistics.csv','w') as file1:
+    with open('PE_statistics.csv','w') as file1:
         # should result in rxn1_828_829_F_results.csv as output
         file1.write(str(missing_filt_seq)+' reads were missing the reverse primer')
         file1.write(str(copied_too_short)+ ' reads had too small of a copied region')
@@ -556,7 +555,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
     return matched_seq_list,read_len_list
     
 #Insertion site functions and code
-def insertion_chunks(final_seqs):
+def insertion_chunks(final_seqs,template):
     '''
     Should create a list of contiguous stretches of DNA for each sequence in
     new_seqs
@@ -575,17 +574,7 @@ def insertion_chunks(final_seqs):
         our method often results in multiple insertions at any given site.
     '''
     chunk_dict = {}
-
-        #check_list = []
     insertions = []
-    # if reaction_number in reverse_search:
-    #     end_pos_default = -1
-    #     final_pos = 0
-    # elif reaction_number in forward_search:
-    #     end_pos_default = 0
-    #     final_pos = -1
-    # else:
-    #     print('Error your numbering is terrible')
     discarded_reads = 0
     chunk_size = 0
     reads_at_end = 0
@@ -594,63 +583,25 @@ def insertion_chunks(final_seqs):
     perfect_matches = 0
     max_chunks_exceeded = 0
     other_scenario = 0
-    for i in range(len(final_seqs)):
-       end_pos = -1
+    for i in final_seqs:
        insert_site = 0
-       num_chunks = 0
        seq_chunks = []
-       max_chunks = 0
        total_len = 0
+       add_one = 0
        #print('Current sequence: ' +str(i+1))
-       if str(final_seqs[i].seq)[0] == '-':
-          discarded_reads += 1
-          upstream_dashes +=1
-          continue
-       while total_len < len(final_seqs[i].seq):
-          bar=re.search('[AGCT]+',str(final_seqs[i].seq)[end_pos:0:-1])
-          if str(type(bar)) == "<type 'NoneType'>":
-           #If this happens, we'll know the last base of the previous
-           # chunk was the insertion site, so we set it as such here.                
-           #if end_pos != 0: 
-           #    insert_site = end_pos
-                reads_at_end += 1
-                #insert_site = end_pos
-                insertions.append(end_pos)
-                
-                break
-          elif abs((bar.span()[1]-bar.span()[0])+1) == (len(final_seqs[i].seq.strip('-'))-total_len): ##perfect match
-                insert_site = len(final_seqs[i].seq)-bar.span()[0]
-                insertions.append(insert_site) #length of the entire alignment minus the length spanned before the first base
-                chunk_dict.update({insert_site:seq_chunks})
-                perfect_matches +=1
-                break
-          elif abs((bar.span()[1]-bar.span()[0])) <= chunk_size: #if a chunk is small enough, set index correspondingly but keep searching through the alignment
-                
-                if num_chunks == 0:
-                    end_pos = len(final_seqs[i].seq)-1-bar.span()[1]
-                else:
-                    end_pos = end_pos-bar.span()[1]
-                num_chunks += 1
-                insert_site = insert_site-(bar.span()[1])
-                span_length = abs(bar.span()[1]-bar.span()[0])
-                seq_chunks.append(span_length)
-                total_len += bar.span()[1]
-                #print('total length: '+str(total_len))
-                continue
-              #elif abs((bar.span()[1]-bar.span()[0])+1) == (len(final_seqs[i].seq.strip('-'))-total_len):
-          elif (abs((bar.span()[1]-bar.span()[0])) > chunk_size) and (abs((bar.span()[1]-bar.span()[0])+1) != (len(final_seqs[i].seq.strip('-'))-total_len)): #this gets rid of sequences with big chunks
-                discarded_reads += 1
-                large_chunk_reads +=1
-                
-                break
-          elif num_chunks > max_chunks: #too many chunks leads to alignment being discarded
-                discarded_reads +=1
-                max_chunks_exceeded +=1
-                break
+       if str(i.seq)[0] != '-':
+            add_one = 1
+       bar=re.search('[AGCT]+',str(i.seq)[-1:0:-1])
+       if (abs(bar.span()[1]-bar.span()[0])+add_one) == len(i.seq.strip('-')): ##perfect match
+              insert_site = len(template)-bar.span()[0]
+              insertions.append(insert_site) #length of the entire alignment minus the length spanned before the first base
+              chunk_dict.update({insert_site:seq_chunks})
+              perfect_matches +=1
+              continue
 
-          else: #This should not happen now, but if it does, will document it
-                other_scenario +=1
-                break
+       else: #This should not happen now, but if it does, will document it
+              other_scenario +=1
+              continue
     
     print (str(reads_at_end)+ ' reads reached the end without a suitable insertion')    
     print (str(discarded_reads)+' reads were discarded :(')
