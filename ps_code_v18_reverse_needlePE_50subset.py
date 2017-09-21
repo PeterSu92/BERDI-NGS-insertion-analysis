@@ -110,6 +110,7 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         f_seqs = load_ngs_file(f_name)
         pe_seqs = load_ngs_file(pe_name)
         # Create lists of SeqRecord objects from the generators
+        #Sometimes, the NGS reads have ambiguous bases or improperly sequenced bases, simply labled 'N'. We cannot use these reads and so they are removed here
         f_seqs1 = [s for s in f_seqs if 'N' not in str(s.seq)]
         pe_seqs1 = [s for s in pe_seqs if 'N' not in str(s.seq)]
         print(str(len(f_seqs1))+' forward reads and '+str(len(pe_seqs1))+' paired end reads initially')  
@@ -128,13 +129,14 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         print('PE reads:'+str(len(pe_seqs2[0]))+',',str(len(pe_seqs2[1]))+',',str(len(pe_seqs2[2])))
         #At this point, both f_seqs2 and pe_seqs2 will be a list of lists.
 
+        #Depending on the direction the code searches in, a particular sequence is required for the both the forward and paired end reads. 
         f_seqs3 = f_seqs2[0]
         # Repeat for paired-end reads
         pe_seqs3 = pe_seqs2[2]
 
         print(str(len(f_seqs3))+' forward reads have the sequence of interest (MBP forward primer)')
         print(str(len(pe_seqs3))+' paired-end reads have the sequence of interest (transposon scar)')
-        # Now that only sequences containing BOTH the CS and the TR have been filtered for,
+        # Now that only sequences containing the CS and the TR have been filtered for, respectively
         # the paired-end matching can occur
         
         s1 = filter_pe_mismatch(f_seqs3,pe_seqs3,gen_copied_seq_function(f_res),f_filt_seqs[2]) #right now using the scar
@@ -288,6 +290,17 @@ def alignment_filter(seqs,template, lo_cutoff,hi_cutoff, bin_num, gapopen = 10, 
     aln_data = AlignIO.parse(open(ofilen),"emboss")
     # for some reason this generator stuff is not working for me so I just set it as a list
     aln_data_list = list(aln_data)
+    a = open('ofilen.needle','r')
+    a1 = a.readlines()
+    score_list = []
+    for s in a1:
+        if 'Score' in s:
+        score_list.append = s.rstrip().lstrip('# Score: ')
+    aln_data_list1 = 0*len(aln_data_list1)
+    for s in aln_data_list1:
+        s.annotations = score_list[aln_data_list.index(s)]
+    # print(score)
+    
     new_seqs = cull_alignments(aln_data_list, lo_cutoff, hi_cutoff)
             
     return new_seqs
