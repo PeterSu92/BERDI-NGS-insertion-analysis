@@ -287,20 +287,11 @@ def alignment_filter(seqs,template, lo_cutoff,hi_cutoff, bin_num, gapopen = 10, 
                                              gapextend=gapextend, outfile=ofilen)
     needle_cline()
             
-    aln_data = AlignIO.parse(open(ofilen),"emboss")
+    # aln_data = AlignIO.parse(open(ofilen),"emboss")
     # for some reason this generator stuff is not working for me so I just set it as a list
-    aln_data_list = list(aln_data)
-    a = open('ofilen.needle','r')
-    a1 = a.readlines()
-    score_list = []
-    for s in a1:
-        if 'Score' in s:
-        score_list.append = s.rstrip().lstrip('# Score: ')
-    aln_data_list1 = 0*len(aln_data_list1)
-    for s in aln_data_list1:
-        s.annotations = score_list[aln_data_list.index(s)]
+
     # print(score)
-    
+    aln_data_list = get_score(ofilen)
     new_seqs = cull_alignments(aln_data_list, lo_cutoff, hi_cutoff)
             
     return new_seqs
@@ -320,7 +311,7 @@ def get_score(ofilen):
         s.annotations = score_list[aln_data_list.index(s)]
         aln_data_list1.append(s)
     return aln_data_list1
-    
+
 def get_coords(s):
             return ':'.join(s.description.split(' ')[0].split(':')[3:])
             
@@ -456,7 +447,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     needle_cline = NeedleCommandline(asequence='temp_seq_PE.fa', bsequence='temp_temp_PE.fa', gapopen=10,
                                                      gapextend=0.5, outfile='PE_copied.needle') #hopefully only one needle file gets made
                     needle_cline()
-                    aln_data = list(AlignIO.parse(open('PE_copied.needle'),"emboss"))
+                    aln_data = get_score('PE_copied.needle')
                     bin_scores = [[46,251],[213,501],[458,751],[703,1001],[952,1251],[1128,1500],[1400,1750],[1650,2000],[1800,2250],[2150,2500]] #same bin cutoff scores as alignment
                     #initialize cutoff scores
                     lo_cutoff = 0
