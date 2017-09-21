@@ -305,6 +305,22 @@ def alignment_filter(seqs,template, lo_cutoff,hi_cutoff, bin_num, gapopen = 10, 
             
     return new_seqs
         
+def get_score(ofilen):
+        #Manually obtain the score from the needle file to avoid biopython issues
+    aln_data_list = list(AlignIO.parse(open(ofilen),"emboss"))
+    # for some reason this generator stuff is not working for me so I just set it as a list
+    a = open(ofilen,'r')
+    a1 = a.readlines()
+    score_list = []
+    for s in a1:
+        if 'Score' in s:
+        score_list.append = s.rstrip().lstrip('# Score: ')
+    aln_data_list1 = 0*len(aln_data_list)
+    for s in aln_data_list:
+        s.annotations = score_list[aln_data_list.index(s)]
+        aln_data_list1.append(s)
+    return aln_data_list1
+    
 def get_coords(s):
             return ':'.join(s.description.split(' ')[0].split(':')[3:])
             
