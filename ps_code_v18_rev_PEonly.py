@@ -156,7 +156,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 p_index = pe_coordL.index(get_coords(s))
                 pe_read = pe_seqs[p_index].reverse_complement()
                 #next set of conditionals ensures the forward and paired-end reads are the same length and shaves off bases accordingly if necessary
-                if len(s) > len(pe_read):
+                if len(s) > len(pe_read): 
                     s = s[0:len(pe_read)]
                 elif len(s) < len(pe_read):
                     pe_seqs[p_index] = pe_seqs[p_index][0:len(s)]  
@@ -190,7 +190,6 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     hi_cutoff = scores[1]
                     match_coord_start = 0
                     match_coord_end = 0 
-                    match_len = 0
                     missing_align = 0
                     nonphys_overlap = 0
                     f = 0
@@ -229,7 +228,6 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     hi_cutoff = scores[1]
                     match_coord_start = 0
                     match_coord_end = 0 
-                    match_len = 0
                     missing_align = 0
                     nonphys_overlap = 0
                     f = 0
