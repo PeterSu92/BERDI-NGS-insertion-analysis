@@ -286,7 +286,7 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
         file1.write(str(copied_too_short)+ ' reads had too small of a copied region')
         file1.write(str(missing_align)+ ' reads did not have a perfect aligned region, probably a mismatch')
         file1.write(str(too_small_chunk)+ ' reads had too small of an aligned region')
-        file1.write(str(full_align)+ ' forward reads matched all the way to the last base')
+        # file1.write(str(full_align)+ ' forward reads matched all the way to the last base')
         file1.close()
     return matched_seq_list,read_len_list
 
