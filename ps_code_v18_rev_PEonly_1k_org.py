@@ -93,12 +93,16 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         pe_seqs3 = pe_seqs2[2]
         f_seqs3 = f_seqs3[0:1000]
         pe_seqs3=pe_seqs3[0:1000]
-
+       	f_seqs =[]
+       	pe_seqs = []
         print(str(len(f_seqs3))+' forward reads have the sequence of interest (MBP forward primer)')
         print(str(len(pe_seqs3))+' paired-end reads have the sequence of interest (transposon scar)')
         # Now that only sequences containing the CS and the TR have been filtered for, respectively
         # the paired-end matching can occur
-
+        f_seqs1 = []
+        pe_seqs1 = []
+        f_seqs2 = []
+        pe_seqs2 = []
         s1 = filter_pe_mismatch(f_seqs3,pe_seqs3,gen_copied_seq_function(f_res),f_filt_seqs[2]) #right now using the scar
         seqs = s1[0]
         with open('matched_seq_PE.fa','w') as sh: #create temporary seq file, hopefully re-written each time
