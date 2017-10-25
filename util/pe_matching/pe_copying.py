@@ -69,9 +69,9 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                 pe_read = pe_seqs[p_index].reverse_complement()
                 #next set of conditionals ensures the forward and paired-end reads are the same length and shaves off bases accordingly if necessary
                 if len(s) > len(pe_read):
-                    s = s[(len(s)-len(pe_read)):]
+                    s = s[0:len(pe_read)]
                 elif len(s) < len(pe_read):
-                    pe_seqs[p_index] = pe_seqs[p_index][(len(pe_read)-len(s)):]  
+                    pe_seqs[p_index] = pe_seqs[p_index][0:len(s)]  
                     pe_read = pe_seqs[p_index].reverse_complement()     
                 if filt_seq in str(s.seq): #if the scar is present in the forward read, proceed as with the perfect match
                     copied = copied_func(s)
@@ -160,12 +160,12 @@ def filter_pe_mismatch(f_seqs,pe_seqs,copied_func,filt_seq): #Now edited to use 
                     # elif bar4.span()[1] > bar3.span()[0]: # if some alignment happens such that part of the transposon scar aligns, this is messy and not worth dealing with
                     #     nonphys_overlap += 1
                     #     continue
-                    f = quality_filter_single(pe_seqs[p_index][bar4.span()[1]:(bar4.span()[1]+50)],q_cutoff=20)
+                    f = quality_filter_single(pe_seqs[p_index][bar4.span()[1]:bar_pe_r],q_cutoff=20)
                     if f > 0: #if the quality of bases between the end of the aligned region and the start of the scar is good#
                         attempt_append += 1
-                        temp_phred = pe_seqs[p_index].letter_annotations.values()[0][bar4.span()[1]:(bar4.span()[1]+50)] #temporarily dump Phred quality scores into a list
+                        temp_phred = pe_seqs[p_index].letter_annotations.values()[0][bar4.span()[1]:bar_pe_r] #temporarily dump Phred quality scores into a list
                         pe_seqs[p_index].letter_annotations = {} #clear the letter annotations so that the sequence can be changed
-                        pe_seqs[p_index].seq = pe_seqs[p_index].seq[bar4.span()[1]:(bar4.span()[1]+50)].reverse_complement() #return only the part of the paired-end read up from end of the scar to the end of the aligned region; reverse complement
+                        pe_seqs[p_index].seq = pe_seqs[p_index].seq[bar4.span()[1]:bar_pe_r].reverse_complement() #return only the part of the paired-end read up from end of the scar to the end of the aligned region; reverse complement
                         pe_seqs[p_index].letter_annotations = {'phred_quality':temp_phred} #now put back the new phred quality score list. Doesn't matter that it's flipped because we are only looking if any socre is below 20
                         matched_seq_list.append(pe_seqs[p_index]) #now this is appending the reverse complement of the paired end read so it can still reverse search
                         append_ct += 1 
