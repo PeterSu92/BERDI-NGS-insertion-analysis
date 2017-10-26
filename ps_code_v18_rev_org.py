@@ -91,8 +91,8 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         f_seqs3 = f_seqs2[0]
         # Repeat for paired-end reads
         pe_seqs3 = pe_seqs2[2]
-        f_seqs3 = f_seqs3[0:1000]
-        pe_seqs3=pe_seqs3[0:1000]
+        # f_seqs3 = f_seqs3[0:1000]
+        # pe_seqs3=pe_seqs3[0:1000]
        	f_seqs =[]
        	pe_seqs = []
         print(str(len(f_seqs3))+' forward reads have the sequence of interest (MBP forward primer)')
