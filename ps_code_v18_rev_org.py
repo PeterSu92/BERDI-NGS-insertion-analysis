@@ -119,8 +119,52 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
 
         seqs = quality_filter(seqs,q_cutoff=20)
         print(str(len(seqs))+' forward reads survived the Phred score quality filter')
-
-        return seqs
+        bin1 = [] #bin1 is all sequences under 50 bases
+        bin2 = [] #bin2 is reads between 50 and 100 bases
+        bin3 = [] #bin3 is reads between 100 and 150 bases
+        bin4 = [] #bin4 is reads between 150 and 200 bases
+        bin5 = [] #bin5 is reads between 200 and 250 bases
+        bin6 = [] #bin6 is reads between 250 and 300 bases
+        bin7 = [] #bin7 contains between 300 and 350 bases
+        # Create a list of all of the bins for iterative purposes
+        big_bin = [bin1,bin2,bin3,bin4,bin5,bin6,bin7]
+        # Cutoff scores for each bin
+        bin_scores = [[42,251],[205,501],[446,751],[687,1001],[928,1251],[1100,1500],[1400,1750]]
+        # Put sequences into bins based on their length        
+        for s in seqs:
+                
+                if (len(str(s.seq).strip('-')) >= 12) and (len(str(s.seq).strip('-')) < 50): #with the primer sequences included, nothing should be below 12 bp
+                    bin1.append(s)
+                elif ((len(str(s.seq).strip('-')) >= 50) and (len(str(s.seq).strip('-')) < 100)):        
+                    bin2.append(s)
+                elif ((len(str(s.seq).strip('-')) >= 100) and (len(str(s.seq).strip('-')) < 150)):
+                    bin3.append(s)                    
+                elif ((len(str(s.seq).strip('-')) >= 150) and (len(str(s.seq).strip('-')) < 200)):
+                    bin4.append(s)            
+                elif ((len(str(s.seq).strip('-')) >= 200) and (len(str(s.seq).strip('-')) < 250)):
+                    bin5.append(s)
+                elif ((len(str(s.seq).strip('-')) >= 250) and (len(str(s.seq).strip('-')) < 300)):
+                    bin6.append(s)
+                elif ((len(str(s.seq).strip('-')) >= 300) and (len(str(s.seq).strip('-')) < 350)):
+                    bin7.append(s)
+        newSeqs = []
+        # Run alignment with score cutoffs based on read length    
+        for i in range(len(big_bin)):
+                if len(big_bin[i]) == 0:
+                    print ('Bin'+str(i+1)+' has no reads')
+                else:
+                    f = []
+                    lo_cutoff = bin_scores[i][0]
+                    hi_cutoff = bin_scores[i][1]
+                    print('Sequences in bin '+str(i+1)+' before alignment: '+str(len(big_bin[i])))
+                    f = alignment_filter(big_bin[i],template, lo_cutoff, hi_cutoff, "_bin"+str(i+1), gapopen = 10, gapextend = 0.5)        
+                    print('Sequences in bin '+str(i+1)+' after alignment'+':', len(f))
+                    newSeqs.append(f)
+        final_seqs = []
+        #this next command just takes each item from each of the sublists in newSeqs and dumps them into one new list
+        final_seqs = [item for sublist in newSeqs for item in sublist]
+        
+        return final_seqs
 
 
 
@@ -201,7 +245,7 @@ def main(argv):
         sys.exit()
     real_insertions = [s+add_this for s in real_insertion_list] #should be able to index correctly now
 
-    print(str(coverage)+"% coverage","total insertions"+str(len(list(insert_dict1.keys()))))
+    print(str(coverage)+"% coverage","total insertions: "+str(len(list(insert_dict1.keys()))))
 
     # fig1 = plt.figure(figsize = (30,20))
     # ax = fig1.add_subplot(1,1,1)
@@ -216,7 +260,7 @@ def main(argv):
     # fig1.savefig('filename.pdf')
     #
     ## Write this to a .csv file, need to write into columns instead of possible
-    outp_file_loc = '../CSV_Results/'
+    outp_file_loc = './CSV_Results/'
     with open(outp_file_loc+outp_name+'_results.csv','w') as file:
         # should result in rxn1_828_829_F_results.csv as output
         writer = csv.writer(file)
