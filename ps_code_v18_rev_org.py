@@ -170,6 +170,65 @@ def main(argv):
     print ('r_filt_seqs ', r_filt_seqs)
     final_sequences = filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs)
     print(str(len(final_sequences))+' forward reads survived the final filtering')
+    window1 = [1,5,9,13]
+    window2 = [2,6,10,14]
+    window3 = [3,7,11,15]
+    window4 = [4,8,12,16]
+    base_add = [-29,304,308,816] #since the template is broken into three windows, need to add the number of bases to arrive at the correct insertion
+    num_regex = re.search('rxn',str(f_filt_seqs_file1))
+    num_regex.span()[1]
+    rxn_num = int(f_filt_seqs_file1[ num_regex.span()[1]])  
+    print ('reaction number is ' + str(rxn_num))
+    insertions1 = insertion_site_freq(final_sequences,template,rxn_num)
+    insert_dict1 = insertions1[0] #avoiding using similar names in the workspace
+    coverage = insertions1[1]
+
+
+    real_insertion_list = list(insert_dict1.keys())
+
+    add_this = 0
+
+    if rxn_num in window1:
+        add_this = base_add[0]
+    elif rxn_num in window2:
+        add_this = base_add[1]
+    elif rxn_num in window3:
+        add_this = base_add[2]
+    elif rxn_num in window4:
+        add_this = base_add[3]
+    else:
+        print('something went wrong with rxn num')
+        sys.exit()
+    real_insertions = [s+add_this for s in real_insertion_list] #should be able to index correctly now
+
+    print(str(coverage)+"% coverage","total insertions"+str(len(list(insert_dict1.keys()))))
+
+    # fig1 = plt.figure(figsize = (30,20))
+    # ax = fig1.add_subplot(1,1,1)
+    # ax.scatter(real_insertions,list(insert_dict1.values()))
+    # max_frequency = max(list(insert_dict1.values()))
+    # figplot_scatter(ax,template,max_frequency)
+    # # Append filename below as desired. 
+    # fig1.savefig(output_file_prefix+'_figure.pdf')
+    # should result in rxn1_828_829_F_figure.pdf as output
+
+    # This code below is commented out because of the file name. Change as desired
+    # fig1.savefig('filename.pdf')
+    #
+    ## Write this to a .csv file, need to write into columns instead of possible
+    outp_file_loc = '../CSV_Results/'
+    with open(outp_file_loc+outp_name+'_results.csv','w') as file:
+        # should result in rxn1_828_829_F_results.csv as output
+        writer = csv.writer(file)
+        writer.writerow(["insertion","count"])
+        writer.writerows(zip(real_insertions,list(insert_dict1.values())))
+        # should result in rxn1_828_829_F_results.csv as output
+        # file.write(str(real_insertions))
+        # file.write('\n')
+        # file.write(str(insert_dict1.values()))
+        # file.write('\n')
+        # file.write('Coverage ='+str(coverage)+'%')
+        file.close()
 
 if __name__ == "__main__":
    main(sys.argv[1:])
