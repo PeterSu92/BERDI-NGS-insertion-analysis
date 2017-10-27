@@ -99,6 +99,7 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         print(str(len(pe_seqs3))+' paired-end reads have the sequence of interest (transposon scar)')
         # Now that only sequences containing the CS and the TR have been filtered for, respectively
         # the paired-end matching can occur
+        #Reset these lists to try and save memory/computing time
         f_seqs1 = []
         pe_seqs1 = []
         f_seqs2 = []
@@ -111,11 +112,11 @@ def filter_sample(f_name,pe_name,template,f_filt_seqs,r_filt_seqs):
         read_len_postalign_list = s1[1]
         print(str(len(seqs))+' forward reads have a paired-end match')
 
-        with open('read_lengths_PE.csv','w') as file:
-            writer = csv.writer(file)
-            writer.writerow(["pe_append","phred_len"])
-            writer.writerows(s1[1])
-            file.close()
+        # with open('read_lengths_PE.csv','w') as file:
+        #     writer = csv.writer(file)
+        #     writer.writerow(["pe_append","phred_len"])
+        #     writer.writerows(s1[1])
+        #     file.close()
 
         seqs = quality_filter(seqs,q_cutoff=20)
         print(str(len(seqs))+' forward reads survived the Phred score quality filter')
